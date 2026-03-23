@@ -1,0 +1,954 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>lucas's Film Habits — Letterboxd Wrapped</title>
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+<style>
+  /* ── Reset & base ── */
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  :root {
+    --bg:       #0c0c0e;
+    --card:     #161618;
+    --border:   #2c2c2e;
+    --accent:   #00c030;
+    --gold:     #e8c04a;
+    --blue:     #4a7ae8;
+    --pink:     #e84a9a;
+    --text:     #f0f0f0;
+    --muted:    #888;
+    --dim:      #444;
+    --radius:   12px;
+  }
+  html { scroll-behavior: smooth; }
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+    font-size: 15px;
+    line-height: 1.6;
+    padding: 0 0 60px;
+  }
+
+  /* ── Header ── */
+  .hero {
+    background: linear-gradient(160deg, #111116 0%, #0c0c0e 60%, #0a120a 100%);
+    border-bottom: 1px solid var(--border);
+    padding: 52px 24px 40px;
+    text-align: center;
+    position: relative;
+    overflow: hidden;
+  }
+  .hero::before {
+    content: "🎞";
+    position: absolute;
+    font-size: 200px;
+    opacity: 0.03;
+    top: -30px; left: 50%; transform: translateX(-50%);
+    pointer-events: none;
+  }
+  .hero-title {
+    font-size: clamp(2rem, 5vw, 3.2rem);
+    font-weight: 800;
+    letter-spacing: -1px;
+    color: var(--text);
+  }
+  .hero-title span { color: var(--accent); }
+  .hero-fullname {
+    font-size: 1rem;
+    color: var(--muted);
+    margin-top: 4px;
+    font-weight: 400;
+  }
+  .hero-fullname strong { color: var(--gold); font-weight: 600; }
+  .hero-bio {
+    max-width: 520px;
+    margin: 12px auto 0;
+    font-size: 0.9rem;
+    color: var(--muted);
+    font-style: italic;
+    line-height: 1.5;
+  }
+  .hero-pills {
+    display: flex;
+    gap: 8px;
+    justify-content: center;
+    flex-wrap: wrap;
+    margin-top: 14px;
+  }
+  .hero-pill {
+    background: rgba(255,255,255,0.05);
+    border: 1px solid var(--border);
+    border-radius: 99px;
+    padding: 4px 14px;
+    font-size: 0.8rem;
+    color: var(--muted);
+    text-decoration: none;
+  }
+  .hero-pill--link { color: var(--blue); border-color: rgba(74,122,232,0.3); }
+  .hero-pill--link:hover { background: rgba(74,122,232,0.1); }
+  .hero-joined {
+    font-size: 0.82rem;
+    color: var(--dim);
+    margin-top: 10px;
+  }
+  .hero-joined strong { color: var(--muted); }
+  .hero-badges { margin-top: 16px; display: flex; gap: 10px; justify-content: center; flex-wrap: wrap; }
+
+  /* ── Badges ── */
+  .badge {
+    display: inline-block;
+    padding: 4px 12px;
+    border-radius: 99px;
+    font-size: 0.78rem;
+    font-weight: 600;
+  }
+  .badge--green { background: rgba(0,192,48,0.15); color: var(--accent); border: 1px solid rgba(0,192,48,0.3); }
+  .badge--dim   { background: rgba(255,255,255,0.05); color: var(--muted); border: 1px solid var(--border); }
+
+  /* ── Layout ── */
+  .container { max-width: 1200px; margin: 0 auto; padding: 0 20px; }
+  .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
+  .grid-3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 20px; }
+  @media (max-width: 768px) {
+    .grid-2, .grid-3 { grid-template-columns: 1fr; }
+  }
+
+  /* ── Overview stat cards ── */
+  .stat-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(130px, 160px));
+    gap: 14px;
+    margin-top: 30px;
+    justify-content: center;
+  }
+  .stat-card {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 20px 14px 16px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 6px;
+    transition: border-color .2s;
+  }
+  .stat-card:hover { border-color: var(--accent); }
+  .stat-icon  { font-size: 1.4rem; }
+  .stat-value { font-size: 1.8rem; font-weight: 800; color: var(--gold); line-height: 1; }
+  .stat-label { font-size: 0.72rem; color: var(--muted); text-transform: uppercase; letter-spacing: .6px; text-align: center; }
+
+  /* ── Cards / sections ── */
+  .card {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 24px;
+    margin-top: 20px;
+  }
+  .card.full-width { grid-column: 1 / -1; }
+  .section-title {
+    font-size: 1.05rem;
+    font-weight: 700;
+    color: var(--text);
+    margin-bottom: 18px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  .section-title .icon { font-size: 1.2rem; }
+  .section-sub { color: var(--muted); font-size: 0.88rem; margin-bottom: 14px; }
+  .section-sub strong { color: var(--text); }
+
+  /* ── Charts ── */
+  .chart-wrap         { position: relative; height: 260px; }
+  .chart-wrap--tall   { height: 380px; }
+  .chart-wrap--short  { height: 180px; }
+  .chart-wrap--square { height: 260px; width: 260px; flex-shrink: 0; }
+
+  /* ── Tables ── */
+  .data-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 0.88rem;
+  }
+  .data-table th {
+    text-align: left;
+    color: var(--muted);
+    font-weight: 600;
+    font-size: 0.72rem;
+    text-transform: uppercase;
+    letter-spacing: .5px;
+    padding: 6px 10px;
+    border-bottom: 1px solid var(--border);
+  }
+  .data-table td {
+    padding: 8px 10px;
+    border-bottom: 1px solid #1e1e20;
+    vertical-align: middle;
+  }
+  .data-table tr:last-child td { border-bottom: none; }
+  .data-table tr:hover td { background: rgba(255,255,255,0.02); }
+  .data-table .rank      { color: var(--dim); font-size: 0.8rem; width: 32px; }
+  .data-table .film-name { color: var(--text); font-weight: 500; }
+  .data-table .film-year { color: var(--muted); font-size: 0.82rem; width: 50px; }
+  .data-table .stars     { color: var(--gold); letter-spacing: 1px; font-size: 0.85rem; }
+  .data-table .num       { color: var(--accent); font-weight: 700; text-align: right; }
+  .data-table .rating-val { color: var(--gold); }
+
+  /* ── Directors / Genres / Actors ── */
+  .genres-layout {
+    display: flex;
+    gap: 28px;
+    align-items: flex-start;
+    flex-wrap: wrap;
+  }
+  .genres-layout .data-table { flex: 1; min-width: 200px; }
+
+  .actor-grid {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+    margin-top: 4px;
+  }
+  .actor-chip {
+    background: #1e1e22;
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 8px 14px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    transition: border-color .15s;
+  }
+  .actor-chip:hover { border-color: var(--blue); }
+  .actor-name  { color: var(--text); font-weight: 500; font-size: 0.9rem; }
+  .actor-count {
+    background: rgba(74,122,232,0.2);
+    color: var(--blue);
+    font-size: 0.72rem;
+    font-weight: 700;
+    padding: 2px 7px;
+    border-radius: 99px;
+  }
+
+  /* ── Rewatches ── */
+  .rewatch-list { display: flex; flex-direction: column; gap: 8px; }
+  .rewatch-item {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 8px 12px;
+    background: #1a1a1e;
+    border-radius: 8px;
+    border: 1px solid var(--border);
+  }
+  .rewatch-badge {
+    background: rgba(232,192,74,0.15);
+    color: var(--gold);
+    font-size: 0.78rem;
+    font-weight: 700;
+    padding: 2px 9px;
+    border-radius: 99px;
+    border: 1px solid rgba(232,192,74,0.3);
+    white-space: nowrap;
+  }
+
+  /* ── Tag cloud ── */
+  .tag-cloud {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+    align-items: baseline;
+    padding-top: 4px;
+  }
+  .tag-chip {
+    background: #1e1e22;
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    padding: 4px 10px;
+    color: var(--text);
+    cursor: default;
+    transition: border-color .15s, color .15s;
+  }
+  .tag-chip:hover { border-color: var(--gold); color: var(--gold); }
+  .tag-chip sup { color: var(--muted); font-size: 0.65em; }
+
+  /* ── Liked films ── */
+  .liked-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+    gap: 10px;
+  }
+  .liked-item {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 8px 12px;
+    background: #1a1a1e;
+    border-radius: 8px;
+    border: 1px solid var(--border);
+    overflow: hidden;
+  }
+  .liked-heart { color: #e84a4a; font-size: 0.8rem; flex-shrink: 0; }
+  .liked-name  { color: var(--text); font-size: 0.85rem; font-weight: 500; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .liked-year  { color: var(--muted); font-size: 0.78rem; flex-shrink: 0; margin-left: auto; }
+
+  /* ── Runtime ── */
+  .runtime-stats { display: flex; gap: 20px; flex-wrap: wrap; }
+  .runtime-card {
+    background: #1a1a1e;
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 20px 28px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 4px;
+    flex: 1;
+    min-width: 160px;
+  }
+  .runtime-value { font-size: 2.2rem; font-weight: 800; color: var(--gold); }
+  .runtime-label { font-size: 0.8rem; color: var(--muted); text-transform: uppercase; letter-spacing: .5px; }
+  .runtime-sub   { font-size: 0.8rem; color: var(--dim); }
+
+  /* ── Film lengths ── */
+  .lengths-layout {
+    display: flex;
+    gap: 32px;
+    align-items: center;
+    flex-wrap: wrap;
+  }
+  .len-legend { display: flex; flex-direction: column; gap: 12px; flex: 1; min-width: 180px; }
+  .len-item   { display: flex; align-items: center; gap: 10px; font-size: 0.88rem; }
+  .len-dot    { width: 12px; height: 12px; border-radius: 3px; flex-shrink: 0; }
+  .len-label  { color: var(--text); flex: 1; }
+  .len-val    { color: var(--gold); font-weight: 700; }
+  .len-pct    { color: var(--muted); font-size: 0.78rem; font-weight: 400; }
+
+  /* ── Countries ── (reuses chart-wrap--tall) ── */
+
+  /* ── Gender distribution ── */
+  .gender-layout { display: grid; grid-template-columns: 1fr 1fr; gap: 28px; }
+  @media (max-width: 600px) { .gender-layout { grid-template-columns: 1fr; } }
+  .gender-block  { display: flex; flex-direction: column; gap: 10px; }
+  .gender-subtitle {
+    font-size: 0.82rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: .6px;
+    color: var(--muted);
+    margin-bottom: 4px;
+  }
+  .gender-row    { display: flex; align-items: center; gap: 8px; font-size: 0.85rem; }
+  .gender-dot    { width: 10px; height: 10px; border-radius: 50%; flex-shrink: 0; }
+  .gender-label  { color: var(--text); width: 90px; flex-shrink: 0; }
+  .gender-bar-bg { flex: 1; background: #222; border-radius: 4px; height: 8px; overflow: hidden; }
+  .gender-bar-fill { height: 100%; border-radius: 4px; transition: width .6s; }
+  .gender-pct    { color: var(--text); font-weight: 700; width: 42px; text-align: right; font-size: 0.82rem; }
+  .gender-count  { color: var(--dim); font-size: 0.78rem; width: 40px; }
+
+  /* ── Watchlist section ── */
+  .watchlist-section {
+    margin-top: 40px;
+  }
+  .wl-header {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    margin-bottom: 4px;
+  }
+  .wl-title {
+    font-size: 1.4rem;
+    font-weight: 800;
+    color: var(--text);
+  }
+  .wl-total-badge {
+    background: rgba(232,148,74,0.15);
+    color: #e8944a;
+    border: 1px solid rgba(232,148,74,0.3);
+    border-radius: 99px;
+    padding: 4px 14px;
+    font-size: 0.82rem;
+    font-weight: 700;
+  }
+
+  /* ── Recently added list ── */
+  .recent-list  { display: flex; flex-direction: column; gap: 6px; }
+  .recent-item  {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 7px 12px;
+    background: #1a1a1e;
+    border-radius: 8px;
+    border: 1px solid var(--border);
+    gap: 10px;
+  }
+  .recent-name  { color: var(--text); font-weight: 500; font-size: 0.88rem; flex: 1; }
+  .recent-meta  { color: var(--muted); font-size: 0.78rem; flex-shrink: 0; white-space: nowrap; }
+  .recent-date  { color: var(--dim); }
+
+  /* ── Popularity table ── */
+  .pop-table    { margin-top: 8px; }
+  .pop-cell     { min-width: 120px; }
+  .pop-bar-bg   { background: #222; border-radius: 4px; height: 6px; overflow: hidden; margin-bottom: 2px; }
+  .pop-bar-fill { height: 100%; border-radius: 4px; }
+  .pop-score    { color: var(--muted); font-size: 0.72rem; }
+  .votes-dim    { color: var(--dim); font-size: 0.78rem; }
+
+  /* ── Misc ── */
+  .no-data {
+    color: var(--muted);
+    font-style: italic;
+    font-size: 0.88rem;
+    padding: 20px 0;
+  }
+  .spacer { margin-top: 40px; }
+  footer {
+    text-align: center;
+    color: var(--dim);
+    font-size: 0.78rem;
+    margin-top: 60px;
+  }
+  footer a { color: var(--muted); }
+
+  /* ── Zone dividers ── */
+  .zone-divider {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    padding-top: 14px;
+    margin: 56px 0 0;
+    border-top: 2px solid var(--zone-accent, var(--accent));
+  }
+  .zone-icon  { font-size: 1.7rem; line-height: 1; }
+  .zone-title {
+    font-size: 1.55rem;
+    font-weight: 800;
+    color: var(--text);
+    letter-spacing: -0.5px;
+  }
+</style>
+</head>
+<body>
+
+<!-- ── HERO ── -->
+<header class="hero">
+  <h1 class="hero-title"><span>@limapictures</span>'s Film Habits</h1>
+  <p class="hero-fullname"><strong>lucas</strong></p>
+  <p class="hero-bio">🌀There is a fifth dimension beyond that which is known to man...🌀</p>
+  <div class="hero-pills"><span class="hero-pill">He / his</span><span class="hero-pill">❤ 4 favorite films</span></div>
+  <p class="hero-joined">Member since <strong>2022-07-31</strong></p>
+  <div class="hero-badges"><span class="badge badge--green">TMDB enriched</span></div>
+</header>
+
+<div class="container">
+
+  <!-- ── OVERVIEW ── -->
+  <div class="stat-grid"><div class="stat-card"><span class="stat-icon">🎬</span><span class="stat-value">569</span><span class="stat-label">Films watched</span></div><div class="stat-card"><span class="stat-icon">⭐</span><span class="stat-value">3.75 ★</span><span class="stat-label">Avg rating</span></div><div class="stat-card"><span class="stat-icon">🗳</span><span class="stat-value">556</span><span class="stat-label">Films rated</span></div><div class="stat-card"><span class="stat-icon">✍</span><span class="stat-value">23</span><span class="stat-label">Reviews</span></div><div class="stat-card"><span class="stat-icon">❤</span><span class="stat-value">112</span><span class="stat-label">Liked</span></div><div class="stat-card"><span class="stat-icon">🔁</span><span class="stat-value">133</span><span class="stat-label">Rewatches</span></div><div class="stat-card"><span class="stat-icon">📋</span><span class="stat-value">856</span><span class="stat-label">On watchlist</span></div></div>
+
+  <!-- ════════════════════════ WATCHED FILMS ════════════════════════ -->
+  <div class="zone-divider" style="--zone-accent:var(--accent)"><span class="zone-icon">🎬</span><h2 class="zone-title">Watched Films</h2></div>
+
+  <!-- Ratings | Activity by year -->
+  <div class="grid-2">
+    
+    <section class="card ">
+        <h2 class="section-title"><span class="icon">⭐</span>Rating Distribution</h2>
+        
+    <div class="chart-wrap">
+        <canvas id="chartRatings"></canvas>
+    </div>
+    <script>
+    new Chart(document.getElementById('chartRatings'), {
+        type: 'bar',
+        data: {
+            labels: ["0.5", "1.0", "1.5", "2.0", "2.5", "3.0", "3.5", "4.0", "4.5", "5.0"],
+            datasets: [{
+                label: 'Films',
+                data: [4, 3, 3, 11, 24, 67, 135, 190, 75, 44],
+                backgroundColor: ["rgba(60,100,60,0.85)", "rgba(53,110,59,0.85)", "rgba(47,120,57,0.85)", "rgba(40,131,56,0.85)", "rgba(33,141,55,0.85)", "rgba(27,151,53,0.85)", "rgba(20,161,52,0.85)", "rgba(13,172,51,0.85)", "rgba(7,182,49,0.85)", "rgba(0,192,48,0.85)"],
+                borderWidth: 0,
+                borderRadius: 4,
+            }]
+        },
+        options: {
+            responsive: true,
+            plugins: {
+                legend: { display: false },
+                tooltip: { callbacks: { title: t => t[0].label + ' ★' } }
+            },
+            scales: {
+                y: { beginAtZero: true, ticks: { color: '#888' }, grid: { color: '#252525' } },
+                x: { ticks: { color: '#888' }, grid: { display: false } }
+            }
+        }
+    });
+    </script>
+    </section>
+    
+    <section class="card ">
+        <h2 class="section-title"><span class="icon">📅</span>Films Watched per Year</h2>
+        
+    <div class="chart-wrap">
+        <canvas id="chartYear"></canvas>
+    </div>
+    <script>
+    new Chart(document.getElementById('chartYear'), {
+        type: 'bar',
+        data: {
+            labels: ["2022", "2023", "2024", "2025", "2026"],
+            datasets: [{
+                label: 'Films watched',
+                data: [60, 187, 250, 153, 16],
+                backgroundColor: 'rgba(0,192,48,0.75)',
+                borderColor:     'rgba(0,224,84,1)',
+                borderWidth: 1,
+                borderRadius: 4,
+            }]
+        },
+        options: {
+            responsive: true,
+            plugins: { legend: { display: false } },
+            scales: {
+                y: { beginAtZero: true, ticks: { color: '#888' }, grid: { color: '#252525' } },
+                x: { ticks: { color: '#888' }, grid: { display: false } }
+            }
+        }
+    });
+    </script>
+    </section>
+  </div>
+
+  <!-- Decades | Monthly patterns -->
+  <div class="grid-2">
+    
+    <section class="card ">
+        <h2 class="section-title"><span class="icon">🗓</span>Films by Release Decade</h2>
+        
+    <div class="chart-wrap">
+        <canvas id="chartDecade"></canvas>
+    </div>
+    <script>
+    new Chart(document.getElementById('chartDecade'), {
+        type: 'bar',
+        data: {
+            labels: ["1920s", "1930s", "1940s", "1950s", "1960s", "1970s", "1980s", "1990s", "2000s", "2010s", "2020s"],
+            datasets: [{
+                label: 'Films',
+                data: [4, 7, 16, 32, 54, 82, 51, 48, 47, 104, 124],
+                backgroundColor: ["#e8c04a", "#e8944a", "#e85a4a", "#c04ae8", "#4a7ae8", "#4ac8e8", "#4ae87a", "#a0e84a", "#e8e84a", "#e8604a", "#e8c04a"],
+                borderWidth: 0,
+                borderRadius: 4,
+            }]
+        },
+        options: {
+            indexAxis: 'y',
+            responsive: true,
+            plugins: { legend: { display: false } },
+            scales: {
+                x: { beginAtZero: true, ticks: { color: '#888' }, grid: { color: '#252525' } },
+                y: { ticks: { color: '#ccc' }, grid: { display: false } }
+            }
+        }
+    });
+    </script>
+    </section>
+    
+    <section class="card ">
+        <h2 class="section-title"><span class="icon">📆</span>Monthly Viewing Pattern</h2>
+        
+    <div class="chart-wrap">
+        <canvas id="chartMonth"></canvas>
+    </div>
+    <script>
+    new Chart(document.getElementById('chartMonth'), {
+        type: 'bar',
+        data: {
+            labels: ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"],
+            datasets: [{
+                label: 'Films',
+                data: [96, 46, 34, 40, 46, 47, 110, 43, 34, 76, 56, 38],
+                backgroundColor: 'rgba(232,192,74,0.8)',
+                borderColor:     'rgba(232,192,74,1)',
+                borderWidth: 1,
+                borderRadius: 4,
+            }]
+        },
+        options: {
+            responsive: true,
+            plugins: { legend: { display: false } },
+            scales: {
+                y: { beginAtZero: true, ticks: { color: '#888' }, grid: { color: '#252525' } },
+                x: { ticks: { color: '#888' }, grid: { display: false } }
+            }
+        }
+    });
+    </script>
+    </section>
+  </div>
+
+  <!-- Current Year -->
+  <div>
+    
+    <section class="card ">
+        <h2 class="section-title"><span class="icon">🆕</span>2026 Releases You've Watched</h2>
+        
+    <p class="section-sub">You have watched <strong>2</strong> films released in 2026.</p>
+    <table class="data-table">
+        <thead><tr><th>#</th><th>Film</th><th>Stars</th><th>Rating</th></tr></thead>
+        <tbody><tr><td class="rank">#1</td><td class="film-name">Project Hail Mary</td><td class="stars">★★★½☆</td><td class="num">3.5</td></tr><tr><td class="rank">#2</td><td class="film-name">Return to Silent Hill</td><td class="stars">½☆☆☆☆</td><td class="num">0.5</td></tr></tbody>
+    </table>
+    </section>
+  </div>
+
+  <!-- Film lengths | Screen time -->
+  <div class="grid-2">
+    
+    <section class="card ">
+        <h2 class="section-title"><span class="icon">⏳</span>Film Length Categories</h2>
+        
+    <div class="lengths-layout">
+        <div class="chart-wrap chart-wrap--square">
+            <canvas id="chartLengths"></canvas>
+        </div>
+        <div class="len-legend"><div class="len-item"><span class="len-dot" style="background:#4ac8e8"></span><span class="len-label">Short (< 60 min)</span><span class="len-val">17 <span class="len-pct">(3%)</span></span></div><div class="len-item"><span class="len-dot" style="background:#00c030"></span><span class="len-label">Medium (60-120 min)</span><span class="len-val">356 <span class="len-pct">(63%)</span></span></div><div class="len-item"><span class="len-dot" style="background:#e8c04a"></span><span class="len-label">Long (> 120 min)</span><span class="len-val">190 <span class="len-pct">(34%)</span></span></div></div>
+    </div>
+    <script>
+    new Chart(document.getElementById('chartLengths'), {
+        type: 'doughnut',
+        data: {
+            labels: ["Short (< 60 min)", "Medium (60-120 min)", "Long (> 120 min)"],
+            datasets: [{
+                data: [17, 356, 190],
+                backgroundColor: ["#4ac8e8", "#00c030", "#e8c04a"],
+                borderColor: '#161618',
+                borderWidth: 3,
+            }]
+        },
+        options: {
+            responsive: true,
+            cutout: '65%',
+            plugins: {
+                legend: { display: false },
+                tooltip: {
+                    callbacks: {
+                        label: ctx => ` ${ctx.parsed} films (${Math.round(ctx.parsed / 563 * 100)}%)`
+                    }
+                }
+            }
+        }
+    });
+    </script>
+    </section>
+    
+    <section class="card ">
+        <h2 class="section-title"><span class="icon">⏱</span>Screen Time</h2>
+        
+    <div class="runtime-stats">
+        <div class="runtime-card">
+            <span class="runtime-value">1061.8h</span>
+            <span class="runtime-label">Total screen time</span>
+            <span class="runtime-sub">≈ 44.2 full days</span>
+        </div>
+        <div class="runtime-card">
+            <span class="runtime-value">113.2m</span>
+            <span class="runtime-label">Avg film length</span>
+        </div>
+    </div>
+    </section>
+  </div>
+
+  <!-- Genres -->
+  <div>
+    
+    <section class="card ">
+        <h2 class="section-title"><span class="icon">🍿</span>Favorite Genres</h2>
+        
+    <div class="genres-layout">
+        <div class="chart-wrap chart-wrap--square">
+            <canvas id="chartGenres"></canvas>
+        </div>
+        <table class="data-table">
+            <thead><tr><th>Genre</th><th>Films</th><th>Avg ★</th></tr></thead>
+            <tbody><tr><td>Drama</td><td class="num">251</td><td class="num rating-val">3.85★</td></tr><tr><td>Thriller</td><td class="num">205</td><td class="num rating-val">3.78★</td></tr><tr><td>Horror</td><td class="num">185</td><td class="num rating-val">3.64★</td></tr><tr><td>Mystery</td><td class="num">132</td><td class="num rating-val">3.83★</td></tr><tr><td>Crime</td><td class="num">95</td><td class="num rating-val">3.82★</td></tr><tr><td>Comedy</td><td class="num">92</td><td class="num rating-val">3.69★</td></tr><tr><td>Science Fiction</td><td class="num">90</td><td class="num rating-val">3.45★</td></tr><tr><td>Adventure</td><td class="num">62</td><td class="num rating-val">3.62★</td></tr><tr><td>Action</td><td class="num">60</td><td class="num rating-val">3.59★</td></tr><tr><td>Fantasy</td><td class="num">60</td><td class="num rating-val">3.76★</td></tr></tbody>
+        </table>
+    </div>
+    <script>
+    new Chart(document.getElementById('chartGenres'), {
+        type: 'doughnut',
+        data: {
+            labels: ["Drama", "Thriller", "Horror", "Mystery", "Crime", "Comedy", "Science Fiction", "Adventure", "Action", "Fantasy"],
+            datasets: [{
+                data: [251, 205, 185, 132, 95, 92, 90, 62, 60, 60],
+                backgroundColor: ["#e8c04a", "#00c030", "#4a7ae8", "#e85a4a", "#c04ae8", "#4ac8e8", "#e8944a", "#4ae87a", "#a0e84a", "#e86c4a"],
+                borderColor: '#161618',
+                borderWidth: 2,
+            }]
+        },
+        options: {
+            responsive: true,
+            plugins: {
+                legend: {
+                    position: 'bottom',
+                    labels: { color: '#ccc', padding: 14, boxWidth: 12 }
+                }
+            }
+        }
+    });
+    </script>
+    </section>
+  </div>
+
+  <!-- Countries -->
+  <div>
+    
+    <section class="card ">
+        <h2 class="section-title"><span class="icon">🌍</span>Production Countries</h2>
+        
+    <div class="chart-wrap chart-wrap--tall">
+        <canvas id="chartCountries"></canvas>
+    </div>
+    <script>
+    new Chart(document.getElementById('chartCountries'), {
+        type: 'bar',
+        data: {
+            labels: ["United States of America", "United Kingdom", "France", "Germany", "Brazil", "Italy", "Japan", "Canada", "South Korea", "Spain", "Sweden", "New Zealand", "Ireland", "Poland", "Denmark"],
+            datasets: [{
+                label: 'Films',
+                data: [352, 85, 60, 44, 41, 38, 34, 23, 14, 14, 12, 10, 8, 8, 7],
+                backgroundColor: 'rgba(74,200,232,0.8)',
+                borderColor:     'rgba(74,200,232,1)',
+                borderWidth: 1,
+                borderRadius: 4,
+            }]
+        },
+        options: {
+            indexAxis: 'y',
+            responsive: true,
+            plugins: { legend: { display: false } },
+            scales: {
+                x: { beginAtZero: true, ticks: { color: '#888', stepSize: 1 }, grid: { color: '#252525' } },
+                y: { ticks: { color: '#ddd' }, grid: { display: false } }
+            }
+        }
+    });
+    </script>
+    </section>
+  </div>
+
+  <!-- Obscure Picks -->
+  <div>
+    
+    <section class="card ">
+        <h2 class="section-title"><span class="icon">🔍</span>Obscure Picks — Films You've Watched</h2>
+        
+    <p class="section-sub">Sorted by TMDB popularity <strong>ascending</strong> — the most obscure films you've watched.</p>
+    <table class="data-table pop-table">
+        <thead>
+            <tr>
+                <th>#</th><th>Film</th><th>Year</th>
+                <th>Popularity</th><th>TMDB Avg</th><th>Stars</th><th>Your ★</th>
+            </tr>
+        </thead>
+        <tbody><tr><td class="rank">#1</td><td class="film-name">River</td><td class="film-year">2023</td><td class="pop-cell"><div class="pop-bar-bg"><div class="pop-bar-fill" style="width:48%;background:hsl(63,80%,45%)"></div></div>  <span class="pop-score">0.2</span></td><td class="num">—</td><td class="stars">★★★½☆</td><td class="num">3.5</td></tr><tr><td class="rank">#2</td><td class="film-name">Strange Encounter</td><td class="film-year">1958</td><td class="pop-cell"><div class="pop-bar-bg"><div class="pop-bar-fill" style="width:52%;background:hsl(66,80%,45%)"></div></div>  <span class="pop-score">0.22</span></td><td class="num">7.5★</td><td class="stars">★★★★☆</td><td class="num">4.0</td></tr><tr><td class="rank">#3</td><td class="film-name">The Happiest Guy in the World</td><td class="film-year">2018</td><td class="pop-cell"><div class="pop-bar-bg"><div class="pop-bar-fill" style="width:62%;background:hsl(70,80%,45%)"></div></div>  <span class="pop-score">0.26</span></td><td class="num">4.0★</td><td class="stars"></td><td class="num">—</td></tr><tr><td class="rank">#4</td><td class="film-name">Daughters of Fire</td><td class="film-year">1978</td><td class="pop-cell"><div class="pop-bar-bg"><div class="pop-bar-fill" style="width:62%;background:hsl(70,80%,45%)"></div></div>  <span class="pop-score">0.26</span></td><td class="num">6.1★</td><td class="stars">★★★½☆</td><td class="num">3.5</td></tr><tr><td class="rank">#5</td><td class="film-name">Seduce Me</td><td class="film-year">2010</td><td class="pop-cell"><div class="pop-bar-bg"><div class="pop-bar-fill" style="width:64%;background:hsl(72,80%,45%)"></div></div>  <span class="pop-score">0.27</span></td><td class="num">6.5★</td><td class="stars"></td><td class="num">—</td></tr><tr><td class="rank">#6</td><td class="film-name">O Fabuloso Fittipaldi</td><td class="film-year">1973</td><td class="pop-cell"><div class="pop-bar-bg"><div class="pop-bar-fill" style="width:64%;background:hsl(72,80%,45%)"></div></div>  <span class="pop-score">0.27</span></td><td class="num">—</td><td class="stars">★★★½☆</td><td class="num">3.5</td></tr><tr><td class="rank">#7</td><td class="film-name">Love & Saucers</td><td class="film-year">2017</td><td class="pop-cell"><div class="pop-bar-bg"><div class="pop-bar-fill" style="width:67%;background:hsl(73,80%,45%)"></div></div>  <span class="pop-score">0.28</span></td><td class="num">—</td><td class="stars">★★★★☆</td><td class="num">4.0</td></tr><tr><td class="rank">#8</td><td class="film-name">Loved and Abused</td><td class="film-year">1976</td><td class="pop-cell"><div class="pop-bar-bg"><div class="pop-bar-fill" style="width:69%;background:hsl(74,80%,45%)"></div></div>  <span class="pop-score">0.29</span></td><td class="num">3.4★</td><td class="stars">★★★½☆</td><td class="num">3.5</td></tr><tr><td class="rank">#9</td><td class="film-name">The Sign of Scorpio</td><td class="film-year">1974</td><td class="pop-cell"><div class="pop-bar-bg"><div class="pop-bar-fill" style="width:71%;background:hsl(75,80%,45%)"></div></div>  <span class="pop-score">0.3</span></td><td class="num">5.1★</td><td class="stars">★★★½☆</td><td class="num">3.5</td></tr><tr><td class="rank">#10</td><td class="film-name">The Tell-Tale Heart</td><td class="film-year">2008</td><td class="pop-cell"><div class="pop-bar-bg"><div class="pop-bar-fill" style="width:71%;background:hsl(75,80%,45%)"></div></div>  <span class="pop-score">0.3</span></td><td class="num">6.5★</td><td class="stars"></td><td class="num">—</td></tr><tr><td class="rank">#11</td><td class="film-name">The Strange World of Coffin Joe</td><td class="film-year">1968</td><td class="pop-cell"><div class="pop-bar-bg"><div class="pop-bar-fill" style="width:76%;background:hsl(78,80%,45%)"></div></div>  <span class="pop-score">0.32</span></td><td class="num">5.4★</td><td class="stars">★★★½☆</td><td class="num">3.5</td></tr><tr><td class="rank">#12</td><td class="film-name">King of the Night</td><td class="film-year">1975</td><td class="pop-cell"><div class="pop-bar-bg"><div class="pop-bar-fill" style="width:79%;background:hsl(79,80%,45%)"></div></div>  <span class="pop-score">0.33</span></td><td class="num">6.1★</td><td class="stars">★★★½☆</td><td class="num">3.5</td></tr><tr><td class="rank">#13</td><td class="film-name">Road to Crime</td><td class="film-year">1954</td><td class="pop-cell"><div class="pop-bar-bg"><div class="pop-bar-fill" style="width:81%;background:hsl(80,80%,45%)"></div></div>  <span class="pop-score">0.34</span></td><td class="num">6.0★</td><td class="stars">★★★★☆</td><td class="num">4.0</td></tr><tr><td class="rank">#14</td><td class="film-name">Angel of the Night</td><td class="film-year">1974</td><td class="pop-cell"><div class="pop-bar-bg"><div class="pop-bar-fill" style="width:81%;background:hsl(80,80%,45%)"></div></div>  <span class="pop-score">0.34</span></td><td class="num">5.5★</td><td class="stars">★★★½☆</td><td class="num">3.5</td></tr><tr><td class="rank">#15</td><td class="film-name">The Saragossa Manuscript</td><td class="film-year">1965</td><td class="pop-cell"><div class="pop-bar-bg"><div class="pop-bar-fill" style="width:83%;background:hsl(81,80%,45%)"></div></div>  <span class="pop-score">0.35</span></td><td class="num">7.8★</td><td class="stars">★★★★½</td><td class="num">4.5</td></tr><tr><td class="rank">#16</td><td class="film-name">Resurrection</td><td class="film-year">2025</td><td class="pop-cell"><div class="pop-bar-bg"><div class="pop-bar-fill" style="width:86%;background:hsl(82,80%,45%)"></div></div>  <span class="pop-score">0.36</span></td><td class="num">—</td><td class="stars">★★★½☆</td><td class="num">3.5</td></tr><tr><td class="rank">#17</td><td class="film-name">Enigma for Demons</td><td class="film-year">1975</td><td class="pop-cell"><div class="pop-bar-bg"><div class="pop-bar-fill" style="width:88%;background:hsl(84,80%,45%)"></div></div>  <span class="pop-score">0.37</span></td><td class="num">5.5★</td><td class="stars">★★★★☆</td><td class="num">4.0</td></tr><tr><td class="rank">#18</td><td class="film-name">Porta dos Fundos: Contrato Vitalício</td><td class="film-year">2016</td><td class="pop-cell"><div class="pop-bar-bg"><div class="pop-bar-fill" style="width:90%;background:hsl(85,80%,45%)"></div></div>  <span class="pop-score">0.38</span></td><td class="num">4.2★</td><td class="stars">★★½☆☆</td><td class="num">2.5</td></tr><tr><td class="rank">#19</td><td class="film-name">Burning</td><td class="film-year">2018</td><td class="pop-cell"><div class="pop-bar-bg"><div class="pop-bar-fill" style="width:98%;background:hsl(88,80%,45%)"></div></div>  <span class="pop-score">0.41</span></td><td class="num">6.4★</td><td class="stars">★★★☆☆</td><td class="num">3.0</td></tr><tr><td class="rank">#20</td><td class="film-name">The Next Victim</td><td class="film-year">1983</td><td class="pop-cell"><div class="pop-bar-bg"><div class="pop-bar-fill" style="width:100%;background:hsl(90,80%,45%)"></div></div>  <span class="pop-score">0.42</span></td><td class="num">4.2★</td><td class="stars">★★★★☆</td><td class="num">4.0</td></tr></tbody>
+    </table>
+    </section>
+  </div>
+
+  <!-- Top Rated Films -->
+  <div>
+    
+    <section class="card ">
+        <h2 class="section-title"><span class="icon">⭐</span>Top Rated Films</h2>
+        
+    <table class="data-table">
+        <thead><tr><th>#</th><th>Film</th><th>Year</th><th>Stars</th><th>Rating</th></tr></thead>
+        <tbody><tr><td class="rank">#1</td><td class="film-name">2001: A Space Odyssey</td><td class="film-year">1968</td><td class="stars">★★★★★</td><td class="num">5.0</td></tr><tr><td class="rank">#2</td><td class="film-name">A Clockwork Orange</td><td class="film-year">1971</td><td class="stars">★★★★★</td><td class="num">5.0</td></tr><tr><td class="rank">#3</td><td class="film-name">All the Colours of the Dark</td><td class="film-year">1972</td><td class="stars">★★★★★</td><td class="num">5.0</td></tr><tr><td class="rank">#4</td><td class="film-name">Amadeus</td><td class="film-year">1984</td><td class="stars">★★★★★</td><td class="num">5.0</td></tr><tr><td class="rank">#5</td><td class="film-name">Apocalypse Now</td><td class="film-year">1979</td><td class="stars">★★★★★</td><td class="num">5.0</td></tr><tr><td class="rank">#6</td><td class="film-name">Barry Lyndon</td><td class="film-year">1975</td><td class="stars">★★★★★</td><td class="num">5.0</td></tr><tr><td class="rank">#7</td><td class="film-name">Blade Runner</td><td class="film-year">1982</td><td class="stars">★★★★★</td><td class="num">5.0</td></tr><tr><td class="rank">#8</td><td class="film-name">Boogie Nights</td><td class="film-year">1997</td><td class="stars">★★★★★</td><td class="num">5.0</td></tr><tr><td class="rank">#9</td><td class="film-name">Casino</td><td class="film-year">1995</td><td class="stars">★★★★★</td><td class="num">5.0</td></tr><tr><td class="rank">#10</td><td class="film-name">Deep Red</td><td class="film-year">1975</td><td class="stars">★★★★★</td><td class="num">5.0</td></tr><tr><td class="rank">#11</td><td class="film-name">Eyes Wide Shut</td><td class="film-year">1999</td><td class="stars">★★★★★</td><td class="num">5.0</td></tr><tr><td class="rank">#12</td><td class="film-name">Grand Prix</td><td class="film-year">1966</td><td class="stars">★★★★★</td><td class="num">5.0</td></tr><tr><td class="rank">#13</td><td class="film-name">Inglourious Basterds</td><td class="film-year">2009</td><td class="stars">★★★★★</td><td class="num">5.0</td></tr><tr><td class="rank">#14</td><td class="film-name">Kuroneko</td><td class="film-year">1968</td><td class="stars">★★★★★</td><td class="num">5.0</td></tr><tr><td class="rank">#15</td><td class="film-name">Monty Python and the Holy Grail</td><td class="film-year">1975</td><td class="stars">★★★★★</td><td class="num">5.0</td></tr><tr><td class="rank">#16</td><td class="film-name">North by Northwest</td><td class="film-year">1959</td><td class="stars">★★★★★</td><td class="num">5.0</td></tr><tr><td class="rank">#17</td><td class="film-name">One Flew Over the Cuckoo's Nest</td><td class="film-year">1975</td><td class="stars">★★★★★</td><td class="num">5.0</td></tr><tr><td class="rank">#18</td><td class="film-name">Parasite</td><td class="film-year">2019</td><td class="stars">★★★★★</td><td class="num">5.0</td></tr><tr><td class="rank">#19</td><td class="film-name">PlayTime</td><td class="film-year">1967</td><td class="stars">★★★★★</td><td class="num">5.0</td></tr><tr><td class="rank">#20</td><td class="film-name">Prisoners</td><td class="film-year">2013</td><td class="stars">★★★★★</td><td class="num">5.0</td></tr></tbody>
+    </table>
+    </section>
+  </div>
+
+  <!-- Rewatches | Tags -->
+  <div class="grid-2">
+    
+    <section class="card ">
+        <h2 class="section-title"><span class="icon">🔁</span>Most Rewatched Films</h2>
+        
+    <p class="section-sub">Total rewatch entries: <strong>133</strong></p>
+    <div class="rewatch-list"><div class="rewatch-item"><span class="film-name">The Shining</span><span class="rewatch-badge">×4</span></div><div class="rewatch-item"><span class="film-name">The Lighthouse</span><span class="rewatch-badge">×4</span></div><div class="rewatch-item"><span class="film-name">Parasite</span><span class="rewatch-badge">×3</span></div><div class="rewatch-item"><span class="film-name">Good Time</span><span class="rewatch-badge">×3</span></div><div class="rewatch-item"><span class="film-name">Ex Machina</span><span class="rewatch-badge">×3</span></div><div class="rewatch-item"><span class="film-name">North by Northwest</span><span class="rewatch-badge">×3</span></div><div class="rewatch-item"><span class="film-name">Get Out</span><span class="rewatch-badge">×2</span></div><div class="rewatch-item"><span class="film-name">mother!</span><span class="rewatch-badge">×2</span></div><div class="rewatch-item"><span class="film-name">Uncut Gems</span><span class="rewatch-badge">×2</span></div><div class="rewatch-item"><span class="film-name">Hereditary</span><span class="rewatch-badge">×2</span></div></div>
+    </section>
+    
+    <section class="card ">
+        <h2 class="section-title"><span class="icon">🏷</span>Diary Tags</h2>
+        <div class="tag-cloud"><span class="tag-chip" style="font-size:1.60rem;opacity:1.00">w/ mav <sup>347</sup></span><span class="tag-chip" style="font-size:1.06rem;opacity:0.70">20s <sup>140</sup></span><span class="tag-chip" style="font-size:1.03rem;opacity:0.68">10s <sup>127</sup></span><span class="tag-chip" style="font-size:0.96rem;opacity:0.64">70s <sup>99</sup></span><span class="tag-chip" style="font-size:0.88rem;opacity:0.60">cinema <sup>70</sup></span><span class="tag-chip" style="font-size:0.87rem;opacity:0.59">60s <sup>65</sup></span><span class="tag-chip" style="font-size:0.86rem;opacity:0.59">80s <sup>62</sup></span><span class="tag-chip" style="font-size:0.84rem;opacity:0.58">90s <sup>55</sup></span><span class="tag-chip" style="font-size:0.82rem;opacity:0.57">00s <sup>48</sup></span><span class="tag-chip" style="font-size:0.80rem;opacity:0.56">50s <sup>40</sup></span><span class="tag-chip" style="font-size:0.75rem;opacity:0.53">40s <sup>19</sup></span><span class="tag-chip" style="font-size:0.72rem;opacity:0.51">30s <sup>9</sup></span><span class="tag-chip" style="font-size:0.70rem;opacity:0.50">mostrasp <sup>1</sup></span></div>
+    </section>
+  </div>
+
+  <!-- Reviews | Liked -->
+  <div class="grid-2">
+    
+    <section class="card ">
+        <h2 class="section-title"><span class="icon">✍</span>Reviews Written per Year</h2>
+        
+    <div class="chart-wrap chart-wrap--short">
+        <canvas id="chartReviews"></canvas>
+    </div>
+    <script>
+    new Chart(document.getElementById('chartReviews'), {
+        type: 'bar',
+        data: {
+            labels: ["2022", "2023", "2024", "2025"],
+            datasets: [{
+                label: 'Reviews written',
+                data: [3, 3, 14, 3],
+                backgroundColor: 'rgba(192,74,232,0.8)',
+                borderColor:     'rgba(192,74,232,1)',
+                borderWidth: 1,
+                borderRadius: 4,
+            }]
+        },
+        options: {
+            responsive: true,
+            plugins: { legend: { display: false } },
+            scales: {
+                y: { beginAtZero: true, ticks: { color:'#888', stepSize:1 }, grid:{ color:'#252525' } },
+                x: { ticks:{ color:'#888' }, grid:{ display:false } }
+            }
+        }
+    });
+    </script>
+    </section>
+    
+    <section class="card ">
+        <h2 class="section-title"><span class="icon">❤</span>Recently Liked Films</h2>
+        <div class="liked-grid"><div class="liked-item"><span class="liked-heart">❤</span><span class="liked-name">Excitation</span><span class="liked-year">1977</span></div><div class="liked-item"><span class="liked-heart">❤</span><span class="liked-name">Licorice Pizza</span><span class="liked-year">2021</span></div><div class="liked-item"><span class="liked-heart">❤</span><span class="liked-name">Laura</span><span class="liked-year">1944</span></div><div class="liked-item"><span class="liked-heart">❤</span><span class="liked-name">The Naked City</span><span class="liked-year">1948</span></div><div class="liked-item"><span class="liked-heart">❤</span><span class="liked-name">The Awakening of the Beast</span><span class="liked-year">1970</span></div><div class="liked-item"><span class="liked-heart">❤</span><span class="liked-name">This Night I'll Possess Your Corpse</span><span class="liked-year">1967</span></div><div class="liked-item"><span class="liked-heart">❤</span><span class="liked-name">Some Like It Hot</span><span class="liked-year">1959</span></div><div class="liked-item"><span class="liked-heart">❤</span><span class="liked-name">Minority Report</span><span class="liked-year">2002</span></div><div class="liked-item"><span class="liked-heart">❤</span><span class="liked-name">Blood and Black Lace</span><span class="liked-year">1964</span></div><div class="liked-item"><span class="liked-heart">❤</span><span class="liked-name">Twin Peaks</span><span class="liked-year">1989</span></div><div class="liked-item"><span class="liked-heart">❤</span><span class="liked-name">The Strange Vice of Mrs Wardh</span><span class="liked-year">1971</span></div><div class="liked-item"><span class="liked-heart">❤</span><span class="liked-name">All the Colours of the Dark</span><span class="liked-year">1972</span></div><div class="liked-item"><span class="liked-heart">❤</span><span class="liked-name">The Girl Who Knew Too Much</span><span class="liked-year">1963</span></div><div class="liked-item"><span class="liked-heart">❤</span><span class="liked-name">The Bird with the Crystal Plumage</span><span class="liked-year">1970</span></div><div class="liked-item"><span class="liked-heart">❤</span><span class="liked-name">Foreign Correspondent</span><span class="liked-year">1940</span></div><div class="liked-item"><span class="liked-heart">❤</span><span class="liked-name">Notorious</span><span class="liked-year">1946</span></div><div class="liked-item"><span class="liked-heart">❤</span><span class="liked-name">The Saragossa Manuscript</span><span class="liked-year">1965</span></div><div class="liked-item"><span class="liked-heart">❤</span><span class="liked-name">The Fearless Vampire Killers</span><span class="liked-year">1967</span></div><div class="liked-item"><span class="liked-heart">❤</span><span class="liked-name">Twin Peaks: Fire Walk with Me</span><span class="liked-year">1992</span></div><div class="liked-item"><span class="liked-heart">❤</span><span class="liked-name">A Short Story</span><span class="liked-year">2022</span></div><div class="liked-item"><span class="liked-heart">❤</span><span class="liked-name">Kuroneko</span><span class="liked-year">1968</span></div><div class="liked-item"><span class="liked-heart">❤</span><span class="liked-name">Kwaidan</span><span class="liked-year">1964</span></div><div class="liked-item"><span class="liked-heart">❤</span><span class="liked-name">Shine Your Eyes</span><span class="liked-year">2020</span></div><div class="liked-item"><span class="liked-heart">❤</span><span class="liked-name">Green Porno</span><span class="liked-year">2008</span></div></div>
+    </section>
+  </div>
+
+  <!-- ════════════════════════ DIRECTORS & CAST ════════════════════════ -->
+  <div class="zone-divider" style="--zone-accent:var(--blue)"><span class="zone-icon">🎭</span><h2 class="zone-title">Directors & Cast</h2></div>
+
+  <!-- Most Watched Directors | Top Rated Directors -->
+  <div class="grid-2">
+    
+    <section class="card ">
+        <h2 class="section-title"><span class="icon">🎬</span>Most Watched Directors</h2>
+        
+    <div class="chart-wrap chart-wrap--tall">
+        <canvas id="chartDirectors"></canvas>
+    </div>
+    <script>
+    new Chart(document.getElementById('chartDirectors'), {
+        type: 'bar',
+        data: {
+            labels: ["Alfred Hitchcock", "Stanley Kubrick", "Paul Thomas Anderson", "Mario Bava", "Martin Scorsese", "Kiyoshi Kurosawa", "David Lynch", "Denis Villeneuve", "Roman Polanski", "David Fincher", "Quentin Tarantino", "Steven Spielberg"],
+            datasets: [{
+                label: 'Films watched',
+                data: [24, 12, 10, 10, 8, 8, 8, 7, 7, 7, 7, 7],
+                backgroundColor: 'rgba(74,160,232,0.8)',
+                borderColor:     'rgba(74,160,232,1)',
+                borderWidth: 1,
+                borderRadius: 4,
+            }]
+        },
+        options: {
+            indexAxis: 'y',
+            responsive: true,
+            plugins: { legend: { display: false } },
+            scales: {
+                x: { beginAtZero: true, ticks: { color: '#888', stepSize: 1 }, grid: { color: '#252525' } },
+                y: { ticks: { color: '#ddd' }, grid: { display: false } }
+            }
+        }
+    });
+    </script>
+    </section>
+    
+    <section class="card ">
+        <h2 class="section-title"><span class="icon">🏆</span>Top Rated Directors</h2>
+        
+    <p class="section-sub">Ranked by your average rating (min. 2 films watched). TMDB-powered.</p>
+    <table class="data-table">
+        <thead><tr><th>#</th><th>Director</th><th>Films</th><th>Rated</th><th>Avg ★</th></tr></thead>
+        <tbody><tr><td class="rank">#1</td><td class="film-name">Miloš Forman</td><td class="num">2</td><td class="num">2</td><td class="num rating-val">5.0★</td></tr><tr><td class="rank">#2</td><td class="film-name">Bong Joon Ho</td><td class="num">2</td><td class="num">2</td><td class="num rating-val">4.75★</td></tr><tr><td class="rank">#3</td><td class="film-name">Robert Eggers</td><td class="num">5</td><td class="num">4</td><td class="num rating-val">4.5★</td></tr><tr><td class="rank">#4</td><td class="film-name">Taika Waititi</td><td class="num">2</td><td class="num">2</td><td class="num rating-val">4.5★</td></tr><tr><td class="rank">#5</td><td class="film-name">Kaneto Shindō</td><td class="num">2</td><td class="num">2</td><td class="num rating-val">4.5★</td></tr><tr><td class="rank">#6</td><td class="film-name">Jacques Tati</td><td class="num">3</td><td class="num">3</td><td class="num rating-val">4.33★</td></tr><tr><td class="rank">#7</td><td class="film-name">Stanley Kubrick</td><td class="num">12</td><td class="num">12</td><td class="num rating-val">4.25★</td></tr><tr><td class="rank">#8</td><td class="film-name">Peter Jackson</td><td class="num">6</td><td class="num">6</td><td class="num rating-val">4.25★</td></tr><tr><td class="rank">#9</td><td class="film-name">Wim Wenders</td><td class="num">4</td><td class="num">4</td><td class="num rating-val">4.25★</td></tr><tr><td class="rank">#10</td><td class="film-name">Otto Preminger</td><td class="num">4</td><td class="num">4</td><td class="num rating-val">4.25★</td></tr><tr><td class="rank">#11</td><td class="film-name">Hayao Miyazaki</td><td class="num">2</td><td class="num">2</td><td class="num rating-val">4.25★</td></tr><tr><td class="rank">#12</td><td class="film-name">Terry Jones</td><td class="num">2</td><td class="num">2</td><td class="num rating-val">4.25★</td></tr></tbody>
+    </table>
+    </section>
+  </div>
+
+  <!-- Actors | Gender distribution -->
+  <div class="grid-2">
+    
+    <section class="card ">
+        <h2 class="section-title"><span class="icon">🎭</span>Favorite Actors</h2>
+        <div class="actor-grid"><div class="actor-chip"><span class="actor-name">Willem Dafoe</span><span class="actor-count">13</span></div><div class="actor-chip"><span class="actor-name">Harrison Ford</span><span class="actor-count">11</span></div><div class="actor-chip"><span class="actor-name">Robert De Niro</span><span class="actor-count">8</span></div><div class="actor-chip"><span class="actor-name">Oscar Isaac</span><span class="actor-count">8</span></div><div class="actor-chip"><span class="actor-name">Daniel Radcliffe</span><span class="actor-count">8</span></div><div class="actor-chip"><span class="actor-name">Rupert Grint</span><span class="actor-count">8</span></div><div class="actor-chip"><span class="actor-name">Emma Watson</span><span class="actor-count">8</span></div><div class="actor-chip"><span class="actor-name">Alan Rickman</span><span class="actor-count">8</span></div><div class="actor-chip"><span class="actor-name">Isabella Rossellini</span><span class="actor-count">7</span></div><div class="actor-chip"><span class="actor-name">Ralph Fiennes</span><span class="actor-count">7</span></div><div class="actor-chip"><span class="actor-name">Samuel L. Jackson</span><span class="actor-count">7</span></div><div class="actor-chip"><span class="actor-name">Leonardo DiCaprio</span><span class="actor-count">7</span></div><div class="actor-chip"><span class="actor-name">Anthony Daniels</span><span class="actor-count">7</span></div><div class="actor-chip"><span class="actor-name">Ian McKellen</span><span class="actor-count">6</span></div><div class="actor-chip"><span class="actor-name">Christopher Lee</span><span class="actor-count">6</span></div></div>
+    </section>
+    
+    <section class="card ">
+        <h2 class="section-title"><span class="icon">⚧</span>Gender Distribution</h2>
+        <div class="gender-layout"><div class="gender-block"><h3 class="gender-subtitle">Directors</h3><div class="gender-row"><span class="gender-dot" style="background:#e84a9a"></span><span class="gender-label">Female</span><div class="gender-bar-bg"><div class="gender-bar-fill" style="width:3.5%;background:#e84a9a"></div></div><span class="gender-pct">3.5%</span><span class="gender-count">(21)</span></div><div class="gender-row"><span class="gender-dot" style="background:#4a7ae8"></span><span class="gender-label">Male</span><div class="gender-bar-bg"><div class="gender-bar-fill" style="width:95.5%;background:#4a7ae8"></div></div><span class="gender-pct">95.5%</span><span class="gender-count">(570)</span></div><div class="gender-row"><span class="gender-dot" style="background:#888"></span><span class="gender-label">Other/N.A.</span><div class="gender-bar-bg"><div class="gender-bar-fill" style="width:1.0%;background:#888"></div></div><span class="gender-pct">1.0%</span><span class="gender-count">(6)</span></div></div><div class="gender-block"><h3 class="gender-subtitle">Cast (top 10 per film)</h3><div class="gender-row"><span class="gender-dot" style="background:#e84a9a"></span><span class="gender-label">Female</span><div class="gender-bar-bg"><div class="gender-bar-fill" style="width:31.4%;background:#e84a9a"></div></div><span class="gender-pct">31.4%</span><span class="gender-count">(1727)</span></div><div class="gender-row"><span class="gender-dot" style="background:#4a7ae8"></span><span class="gender-label">Male</span><div class="gender-bar-bg"><div class="gender-bar-fill" style="width:61.9%;background:#4a7ae8"></div></div><span class="gender-pct">61.9%</span><span class="gender-count">(3403)</span></div><div class="gender-row"><span class="gender-dot" style="background:#888"></span><span class="gender-label">Other/N.A.</span><div class="gender-bar-bg"><div class="gender-bar-fill" style="width:6.7%;background:#888"></div></div><span class="gender-pct">6.7%</span><span class="gender-count">(369)</span></div></div></div>
+    </section>
+  </div>
+
+</div>
+
+<!-- ════════════════════════ WATCHLIST ════════════════════════ -->
+<div class="container">
+  
+<section id="watchlist" class="watchlist-section">
+  <div class="zone-divider" style="--zone-accent:#e8944a">
+    <span class="zone-icon">📋</span>
+    <h2 class="zone-title">My Watchlist</h2>
+    <span class="wl-total-badge">856 films</span>
+  </div>
+
+  <div class="grid-2">
+    
+    <section class="card ">
+        <h2 class="section-title"><span class="icon">🗓</span>Watchlist by Release Decade</h2>
+        
+    <div class="chart-wrap chart-wrap--short">
+        <canvas id="chartWlDecade"></canvas>
+    </div>
+    <script>
+    new Chart(document.getElementById('chartWlDecade'), {
+        type: 'bar',
+        data: {
+            labels: ["1910s", "1920s", "1930s", "1940s", "1950s", "1960s", "1970s", "1980s", "1990s", "2000s", "2010s", "2020s"],
+            datasets: [{
+                label: 'Films',
+                data:  [2, 27, 16, 38, 60, 131, 142, 103, 60, 70, 101, 104],
+                backgroundColor: ["#e8c04a", "#e8944a", "#e85a4a", "#c04ae8", "#4a7ae8", "#4ac8e8", "#4ae87a", "#a0e84a", "#e8e84a", "#4ac8d0", "#e8c04a", "#e8944a"],
+                borderWidth: 0,
+                borderRadius: 4,
+            }]
+        },
+        options: {
+            responsive: true,
+            plugins: { legend: { display: false } },
+            scales: {
+                y: { beginAtZero: true, ticks: { color: '#888' }, grid: { color: '#252525' } },
+                x: { ticks: { color: '#888' }, grid: { display: false } }
+            }
+        }
+    });
+    </script>
+    </section>
+    
+    <section class="card ">
+        <h2 class="section-title"><span class="icon">🕐</span>Recently Added</h2>
+        <div class="recent-list"><div class="recent-item"><span class="recent-name">Disclosure Day</span><span class="recent-meta">2026  ·  <span class="recent-date">2026-03-17</span></span></div><div class="recent-item"><span class="recent-name">Mr. Nobody Against Putin</span><span class="recent-meta">2025  ·  <span class="recent-date">2026-03-16</span></span></div><div class="recent-item"><span class="recent-name">Caught Stealing</span><span class="recent-meta">2025  ·  <span class="recent-date">2026-03-04</span></span></div><div class="recent-item"><span class="recent-name">Nausicaä of the Valley of the Wind</span><span class="recent-meta">1984  ·  <span class="recent-date">2026-03-02</span></span></div><div class="recent-item"><span class="recent-name">The Slumber Party Massacre</span><span class="recent-meta">1982  ·  <span class="recent-date">2026-03-01</span></span></div><div class="recent-item"><span class="recent-name">The Hidden</span><span class="recent-meta">1987  ·  <span class="recent-date">2026-02-25</span></span></div><div class="recent-item"><span class="recent-name">Scream 7</span><span class="recent-meta">2026  ·  <span class="recent-date">2026-02-23</span></span></div><div class="recent-item"><span class="recent-name">That Damned Meat</span><span class="recent-meta">1985  ·  <span class="recent-date">2026-02-22</span></span></div><div class="recent-item"><span class="recent-name">Doppelgänger</span><span class="recent-meta">2012  ·  <span class="recent-date">2026-02-22</span></span></div><div class="recent-item"><span class="recent-name">The Ax</span><span class="recent-meta">2005  ·  <span class="recent-date">2026-02-22</span></span></div><div class="recent-item"><span class="recent-name">Attack on Titan</span><span class="recent-meta">2015  ·  <span class="recent-date">2026-02-08</span></span></div><div class="recent-item"><span class="recent-name">Lucio Flavio</span><span class="recent-meta">1977  ·  <span class="recent-date">2026-01-26</span></span></div><div class="recent-item"><span class="recent-name">The Amorous Ones</span><span class="recent-meta">1968  ·  <span class="recent-date">2026-01-26</span></span></div><div class="recent-item"><span class="recent-name">Noites Paraguayas</span><span class="recent-meta">1982  ·  <span class="recent-date">2026-01-26</span></span></div><div class="recent-item"><span class="recent-name">The Woman Who Invented Love</span><span class="recent-meta">1980  ·  <span class="recent-date">2026-01-25</span></span></div></div>
+    </section>
+  </div>
+
+</section>
+</div>
+
+<footer>
+  <p>Generated from your <a href="https://letterboxd.com" target="_blank">Letterboxd</a> data export.</p>
+</footer>
+
+</body>
+</html>
