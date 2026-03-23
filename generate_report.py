@@ -732,8 +732,6 @@ def generate_html(stats: dict) -> str:
     if website:
         safe_site = website if website.startswith("http") else f"https://{website}"
         meta_pills += f'<a class="hero-pill hero-pill--link" href="{safe_site}" target="_blank">🔗 {website}</a>'
-    if fav_cnt:
-        meta_pills += f'<span class="hero-pill">❤ {fav_cnt} favorite films</span>'
 
     bio_block = f'<p class="hero-bio">{bio}</p>' if bio else ""
 
@@ -742,6 +740,49 @@ def generate_html(stats: dict) -> str:
         if tmdb_on else
         '<span class="badge badge--dim">Set TMDB_API_KEY for full stats</span>'
     )
+
+    # Hero 2×2 grid data
+    hero = stats.get("hero_data") or {}
+    fav_films    = hero.get("fav_films", [])
+    top_director = hero.get("top_director")
+    top_actor    = hero.get("top_actor")
+
+    fav_posters_html = ""
+    for f in fav_films[:4]:
+        poster = f.get("poster")
+        yr     = f"({f['year']})" if f.get("year") else ""
+        if poster:
+            fav_posters_html += (
+                f'<div class="hero-poster">'
+                f'<img src="{poster}" alt="{f["name"]}" loading="lazy">'
+                f'<span class="hero-poster-label">{f["name"]} {yr}</span>'
+                f'</div>'
+            )
+        else:
+            fav_posters_html += (
+                f'<div class="hero-poster hero-poster--empty">'
+                f'<span class="hero-poster-label">{f["name"]} {yr}</span>'
+                f'</div>'
+            )
+
+    def _person_card(person: dict | None, role_label: str) -> str:
+        if not person:
+            return f'<div class="hero-person"><p class="hero-person-empty">{role_label} data unavailable</p></div>'
+        img = person.get("image")
+        img_tag = f'<img src="{img}" alt="{person["name"]}" loading="lazy">' if img else '<div class="hero-person-nophoto">🎬</div>'
+        return (
+            f'<div class="hero-person">'
+            f'{img_tag}'
+            f'<div class="hero-person-info">'
+            f'<span class="hero-person-role">{role_label}</span>'
+            f'<span class="hero-person-name">{person["name"]}</span>'
+            f'<span class="hero-person-count">{person["count"]} films</span>'
+            f'</div>'
+            f'</div>'
+        )
+
+    director_html = _person_card(top_director, "Favorite Director")
+    actor_html    = _person_card(top_actor,    "Favorite Actor")
 
     overview_html        = _build_overview_cards(p)
     ratings_html         = _build_rating_chart(stats["rating_distribution"])
@@ -803,8 +844,7 @@ def generate_html(stats: dict) -> str:
   .hero {{
     background: linear-gradient(160deg, #111116 0%, #0c0c0e 60%, #0a120a 100%);
     border-bottom: 1px solid var(--border);
-    padding: 52px 24px 40px;
-    text-align: center;
+    padding: 40px 24px 32px;
     position: relative;
     overflow: hidden;
   }}
@@ -816,8 +856,23 @@ def generate_html(stats: dict) -> str:
     top: -30px; left: 50%; transform: translateX(-50%);
     pointer-events: none;
   }}
+  .hero-grid {{
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 24px;
+    max-width: 1100px;
+    margin: 0 auto;
+  }}
+  @media (max-width: 740px) {{
+    .hero-grid {{ grid-template-columns: 1fr; }}
+  }}
+  .hero-profile {{
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+  }}
   .hero-title {{
-    font-size: clamp(2rem, 5vw, 3.2rem);
+    font-size: clamp(1.6rem, 4vw, 2.6rem);
     font-weight: 800;
     letter-spacing: -1px;
     color: var(--text);
@@ -831,9 +886,9 @@ def generate_html(stats: dict) -> str:
   }}
   .hero-fullname strong {{ color: var(--gold); font-weight: 600; }}
   .hero-bio {{
-    max-width: 520px;
-    margin: 12px auto 0;
-    font-size: 0.9rem;
+    max-width: 480px;
+    margin: 10px 0 0;
+    font-size: 0.88rem;
     color: var(--muted);
     font-style: italic;
     line-height: 1.5;
@@ -841,9 +896,8 @@ def generate_html(stats: dict) -> str:
   .hero-pills {{
     display: flex;
     gap: 8px;
-    justify-content: center;
     flex-wrap: wrap;
-    margin-top: 14px;
+    margin-top: 12px;
   }}
   .hero-pill {{
     background: rgba(255,255,255,0.05);
@@ -862,7 +916,118 @@ def generate_html(stats: dict) -> str:
     margin-top: 10px;
   }}
   .hero-joined strong {{ color: var(--muted); }}
-  .hero-badges {{ margin-top: 16px; display: flex; gap: 10px; justify-content: center; flex-wrap: wrap; }}
+  .hero-badges {{ margin-top: 14px; display: flex; gap: 10px; flex-wrap: wrap; }}
+
+  /* ── Hero: favourite films ── */
+  .hero-favs {{
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+  }}
+  .hero-cell-title {{
+    font-size: 0.82rem;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    color: var(--dim);
+    font-weight: 600;
+    margin: 0;
+  }}
+  .hero-poster-row {{
+    display: flex;
+    gap: 10px;
+  }}
+  .hero-poster {{
+    flex: 1;
+    border-radius: 6px;
+    overflow: hidden;
+    background: rgba(255,255,255,0.04);
+    border: 1px solid var(--border);
+    display: flex;
+    flex-direction: column;
+  }}
+  .hero-poster img {{
+    width: 100%;
+    aspect-ratio: 2/3;
+    object-fit: cover;
+    display: block;
+  }}
+  .hero-poster--empty {{
+    aspect-ratio: 2/3;
+    display: flex;
+    align-items: flex-end;
+    justify-content: center;
+  }}
+  .hero-poster-label {{
+    display: block;
+    padding: 4px 6px;
+    font-size: 0.68rem;
+    color: var(--muted);
+    text-align: center;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }}
+
+  /* ── Hero: person cards ── */
+  .hero-cell {{
+    display: flex;
+    align-items: center;
+  }}
+  .hero-person {{
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    background: rgba(255,255,255,0.03);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 16px 20px;
+    width: 100%;
+  }}
+  .hero-person img {{
+    width: 72px;
+    height: 72px;
+    border-radius: 50%;
+    object-fit: cover;
+    flex-shrink: 0;
+    border: 2px solid var(--border);
+  }}
+  .hero-person-nophoto {{
+    width: 72px;
+    height: 72px;
+    border-radius: 50%;
+    background: rgba(255,255,255,0.06);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 28px;
+    flex-shrink: 0;
+  }}
+  .hero-person-info {{
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+  }}
+  .hero-person-role {{
+    font-size: 0.72rem;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    color: var(--dim);
+    font-weight: 600;
+  }}
+  .hero-person-name {{
+    font-size: 1.1rem;
+    font-weight: 700;
+    color: var(--text);
+  }}
+  .hero-person-count {{
+    font-size: 0.8rem;
+    color: var(--muted);
+  }}
+  .hero-person-empty {{
+    font-size: 0.85rem;
+    color: var(--dim);
+    font-style: italic;
+  }}
 
   /* ── Badges ── */
   .badge {{
@@ -1204,12 +1369,30 @@ def generate_html(stats: dict) -> str:
 
 <!-- ── HERO ── -->
 <header class="hero">
-  <h1 class="hero-title"><span>@{username}</span>'s Film Habits</h1>
-  <p class="hero-fullname"><strong>{fullname}</strong></p>
-  {bio_block}
-  <div class="hero-pills">{meta_pills}</div>
-  <p class="hero-joined">Member since <strong>{joined}</strong></p>
-  <div class="hero-badges">{tmdb_badge}</div>
+  <div class="hero-grid">
+    <!-- Top-left: profile text -->
+    <div class="hero-profile">
+      <h1 class="hero-title"><span>@{username}</span>'s Film Habits</h1>
+      <p class="hero-fullname"><strong>{fullname}</strong></p>
+      {bio_block}
+      <div class="hero-pills">{meta_pills}</div>
+      <p class="hero-joined">Member since <strong>{joined}</strong></p>
+      <div class="hero-badges">{tmdb_badge}</div>
+    </div>
+    <!-- Top-right: 4 favourite film posters -->
+    <div class="hero-favs">
+      <h3 class="hero-cell-title">Favorite Films</h3>
+      <div class="hero-poster-row">{fav_posters_html}</div>
+    </div>
+    <!-- Bottom-left: favourite director -->
+    <div class="hero-cell">
+      {director_html}
+    </div>
+    <!-- Bottom-right: favourite actor -->
+    <div class="hero-cell">
+      {actor_html}
+    </div>
+  </div>
 </header>
 
 <div class="container">

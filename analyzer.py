@@ -94,51 +94,158 @@ def _fetch_tmdb(name: str, year, api_key: str) -> dict | None:
     _load_cache()
     cache_key = f"{name}|||{year}"
     with _cache_lock:
+        hit = _cache.get(cache_key)
+        # Return cached hit if it's a complete dict (has poster_path).
+        # Stale dicts missing "poster_path" or bare None entries without
+        # the "_v2" marker are re-fetched to pick up new fields / retries.
         if cache_key in _cache:
-            return _cache[cache_key]
+            if isinstance(hit, dict) and "poster_path" in hit:
+                return hit
+            if hit is None and _cache.get(cache_key + "::v") == 2:
+                return None
 
     params: dict = {"api_key": api_key, "query": name, "language": "en-US"}
     if pd.notna(year):
         params["year"] = int(year)
 
     try:
+        # ── Movie search (3-step fallback) ──
         _wait_for_tmdb_slot()
         resp = requests.get(f"{TMDB_BASE}/search/movie", params=params, timeout=8)
         resp.raise_for_status()
         results = resp.json().get("results", [])
+
+        # Fallback chain when the primary search returns nothing:
+        #  1) Drop the language filter (matches original-language titles).
+        #  2) Drop the year filter too (handles year mismatches between
+        #     Letterboxd and TMDB).
         if not results:
+            fb1 = {k: v for k, v in params.items() if k != "language"}
+            _wait_for_tmdb_slot()
+            resp = requests.get(f"{TMDB_BASE}/search/movie", params=fb1, timeout=8)
+            resp.raise_for_status()
+            results = resp.json().get("results", [])
+
+        # ── TV search with year (before dropping year on movie search,
+        #    since some Letterboxd "films" are TV on TMDB and a year-
+        #    matched TV result is better than a year-less movie result) ──
+        tv_results: list = []
+        if not results and pd.notna(year):
+            tv_params = {"api_key": api_key, "query": name,
+                         "first_air_date_year": int(year)}
+            _wait_for_tmdb_slot()
+            resp = requests.get(f"{TMDB_BASE}/search/tv", params=tv_params, timeout=8)
+            resp.raise_for_status()
+            tv_results = resp.json().get("results", [])
+
+        # Movie search dropping year (last-resort movie fallback).
+        # Accept only if the release year is close (±1) to the expected year.
+        if not results and not tv_results and "year" in params:
+            fb2 = {"api_key": api_key, "query": name}
+            _wait_for_tmdb_slot()
+            resp = requests.get(f"{TMDB_BASE}/search/movie", params=fb2, timeout=8)
+            resp.raise_for_status()
+            noyear_results = resp.json().get("results", [])
+            if noyear_results and pd.notna(year):
+                rd = noyear_results[0].get("release_date", "")
+                try:
+                    ry = int(rd[:4])
+                    if abs(ry - int(year)) <= 1:
+                        results = noyear_results
+                except (ValueError, IndexError):
+                    pass
+            elif noyear_results:
+                results = noyear_results
+
+        # TV search without year (last-resort TV fallback)
+        if not results and not tv_results:
+            _wait_for_tmdb_slot()
+            resp = requests.get(
+                f"{TMDB_BASE}/search/tv",
+                params={"api_key": api_key, "query": name},
+                timeout=8,
+            )
+            resp.raise_for_status()
+            tv_results = resp.json().get("results", [])
+
+        # ── Fetch movie detail ──
+        if results:
+            movie_id = results[0]["id"]
+            _wait_for_tmdb_slot()
+            detail = requests.get(
+                f"{TMDB_BASE}/movie/{movie_id}",
+                params={"api_key": api_key, "append_to_response": "credits"},
+                timeout=8,
+            )
+            detail.raise_for_status()
+            d = detail.json()
+
+            crew      = d.get("credits", {}).get("crew", [])
+            cast_list = d.get("credits", {}).get("cast", [])
+
+            meta = {
+                "directors":        [c["name"]          for c in crew      if c.get("job") == "Director"],
+                "director_genders": [c.get("gender", 0) for c in crew      if c.get("job") == "Director"],
+                "genres":           [g["name"]           for g in d.get("genres", [])],
+                "cast":             [c["name"]           for c in cast_list[:10]],
+                "cast_genders":     [c.get("gender", 0)  for c in cast_list[:10]],
+                "runtime":          d.get("runtime"),
+                "countries":        [c["name"]           for c in d.get("production_countries", [])],
+                "poster_path":      d.get("poster_path"),
+                "popularity":       d.get("popularity"),
+                "vote_average":     d.get("vote_average"),
+                "vote_count":       d.get("vote_count"),
+            }
             with _cache_lock:
-                _cache[cache_key] = None
-            return None
+                _cache[cache_key] = meta
+            return meta
 
-        movie_id = results[0]["id"]
-        _wait_for_tmdb_slot()
-        detail = requests.get(
-            f"{TMDB_BASE}/movie/{movie_id}",
-            params={"api_key": api_key, "append_to_response": "credits"},
-            timeout=8,
-        )
-        detail.raise_for_status()
-        d = detail.json()
+        # ── Fetch TV detail ──
+        if tv_results:
+            tv_id = tv_results[0]["id"]
+            _wait_for_tmdb_slot()
+            detail = requests.get(
+                f"{TMDB_BASE}/tv/{tv_id}",
+                params={"api_key": api_key, "append_to_response": "credits"},
+                timeout=8,
+            )
+            detail.raise_for_status()
+            d = detail.json()
 
-        crew      = d.get("credits", {}).get("crew", [])
-        cast_list = d.get("credits", {}).get("cast", [])
+            crew      = d.get("credits", {}).get("crew", [])
+            cast_list = d.get("credits", {}).get("cast", [])
+            creators  = d.get("created_by", [])
 
-        meta = {
-            "directors":        [c["name"]          for c in crew      if c.get("job") == "Director"],
-            "director_genders": [c.get("gender", 0) for c in crew      if c.get("job") == "Director"],
-            "genres":           [g["name"]           for g in d.get("genres", [])],
-            "cast":             [c["name"]           for c in cast_list[:10]],
-            "cast_genders":     [c.get("gender", 0)  for c in cast_list[:10]],
-            "runtime":          d.get("runtime"),
-            "countries":        [c["name"]           for c in d.get("production_countries", [])],
-            "popularity":       d.get("popularity"),
-            "vote_average":     d.get("vote_average"),
-            "vote_count":       d.get("vote_count"),
-        }
+            directors = ([c["name"] for c in crew if c.get("job") == "Director"]
+                         or [c["name"] for c in creators])
+            dir_genders = ([c.get("gender", 0) for c in crew if c.get("job") == "Director"]
+                           or [c.get("gender", 0) for c in creators])
+
+            ep_runtimes = d.get("episode_run_time", [])
+            runtime = ep_runtimes[0] if ep_runtimes else None
+
+            meta = {
+                "directors":        directors,
+                "director_genders": dir_genders,
+                "genres":           [g["name"]           for g in d.get("genres", [])],
+                "cast":             [c["name"]           for c in cast_list[:10]],
+                "cast_genders":     [c.get("gender", 0)  for c in cast_list[:10]],
+                "runtime":          runtime,
+                "countries":        [c["name"]           for c in d.get("production_countries", d.get("origin_country", []))],
+                "poster_path":      d.get("poster_path"),
+                "popularity":       d.get("popularity"),
+                "vote_average":     d.get("vote_average"),
+                "vote_count":       d.get("vote_count"),
+            }
+            with _cache_lock:
+                _cache[cache_key] = meta
+            return meta
+
+        # Genuinely not found anywhere
         with _cache_lock:
-            _cache[cache_key] = meta
-        return meta
+            _cache[cache_key] = None
+            _cache[cache_key + "::v"] = 2
+        return None
 
     except Exception:
         with _cache_lock:
@@ -177,6 +284,113 @@ def _enrich(watched: pd.DataFrame, api_key: str) -> list[dict | None]:
 
     _save_cache()
     return result
+
+
+TMDB_IMG_BASE = "https://image.tmdb.org/t/p/"
+
+
+def _fetch_person_image(name: str, api_key: str) -> str | None:
+    """Return the TMDB profile image URL for a person, or None."""
+    _load_cache()
+    cache_key = f"person|||{name}"
+    with _cache_lock:
+        if cache_key in _cache:
+            path = _cache[cache_key]
+            return f"{TMDB_IMG_BASE}w185{path}" if path else None
+
+    try:
+        _wait_for_tmdb_slot()
+        resp = requests.get(
+            f"{TMDB_BASE}/search/person",
+            params={"api_key": api_key, "query": name, "language": "en-US"},
+            timeout=8,
+        )
+        resp.raise_for_status()
+        results = resp.json().get("results", [])
+        path = results[0].get("profile_path") if results else None
+        with _cache_lock:
+            _cache[cache_key] = path
+        _save_cache()
+        return f"{TMDB_IMG_BASE}w185{path}" if path else None
+    except Exception:
+        with _cache_lock:
+            _cache[cache_key] = None
+        return None
+
+
+def get_hero_data(data: dict) -> dict:
+    """
+    Build the hero-section payload: profile favourite films (with posters),
+    top director (with photo) and top actor (with photo).
+    """
+    api_key = get_tmdb_api_key()
+
+    # ── Resolve favourite films from profile short-URLs ──
+    profile  = data["profile"].iloc[0]
+    fav_raw  = str(profile.get("Favorite Films", ""))
+    fav_urls = [u.strip() for u in fav_raw.split(",") if u.strip()] if fav_raw != "nan" else []
+
+    watched  = data["watched"]
+    uri_map  = dict(zip(watched["Letterboxd URI"], watched.index))  # short-URL → row idx
+
+    fav_films: list[dict] = []
+    for url in fav_urls[:4]:
+        idx = uri_map.get(url)
+        if idx is not None:
+            row = watched.loc[idx]
+            name, year = row["Name"], row.get("Year")
+        else:
+            # URL not in watched list – resolve slug as a fallback
+            try:
+                r = requests.head(url, allow_redirects=True, timeout=10)
+                slug = r.url.rstrip("/").split("/")[-1]
+                # strip trailing year like -1973
+                import re as _re
+                m = _re.match(r"^(.+)-(\d{4})$", slug)
+                if m:
+                    name = m.group(1).replace("-", " ").title()
+                    year = int(m.group(2))
+                else:
+                    name = slug.replace("-", " ").title()
+                    year = None
+            except Exception:
+                continue
+
+        poster_url = None
+        if api_key:
+            meta = _fetch_tmdb(name, year, api_key)
+            if meta and meta.get("poster_path"):
+                poster_url = f"{TMDB_IMG_BASE}w300{meta['poster_path']}"
+        fav_films.append({"name": str(name), "year": int(year) if pd.notna(year) else None, "poster": poster_url})
+
+    # ── Top director & top actor (with images) ──
+    top_director: dict | None = None
+    top_actor:    dict | None = None
+
+    if api_key:
+        metas = _enrich(watched, api_key)
+
+        dir_counter: Counter = Counter()
+        for meta in metas:
+            if meta:
+                dir_counter.update(meta["directors"])
+        if dir_counter:
+            dname, dcount = dir_counter.most_common(1)[0]
+            top_director = {"name": dname, "count": dcount, "image": _fetch_person_image(dname, api_key)}
+
+        act_counter: Counter = Counter()
+        for meta in metas:
+            if meta:
+                act_counter.update(meta["cast"])
+        if act_counter:
+            aname, acount = act_counter.most_common(1)[0]
+            top_actor = {"name": aname, "count": acount, "image": _fetch_person_image(aname, api_key)}
+
+    return {
+        "fav_films":    fav_films,
+        "top_director": top_director,
+        "top_actor":    top_actor,
+    }
 
 
 # ── Raw CSV loaders ─────────────────────────────────────────────────────────────
@@ -682,6 +896,7 @@ def get_all_stats(data: dict) -> dict:
         ("Watchlist analysis",         lambda: get_watchlist_analysis(data)),
         ("Top-rated directors (TMDB)", lambda: get_top_rated_directors(data)),
         ("Low-popularity watched (TMDB)", lambda: get_low_popularity_watched(data)),
+        ("Hero data (TMDB)",               lambda: get_hero_data(data)),
     ]
 
     results: dict = {}
@@ -693,6 +908,7 @@ def get_all_stats(data: dict) -> dict:
         "directors", "genres", "actors", "runtime_stats",
         "film_lengths", "countries", "gender_distribution",
         "watchlist_analysis", "top_rated_directors", "low_popularity_watched",
+        "hero_data",
     ]
 
     for (label, fn), key in zip(steps, keys):

@@ -35,8 +35,7 @@
   .hero {
     background: linear-gradient(160deg, #111116 0%, #0c0c0e 60%, #0a120a 100%);
     border-bottom: 1px solid var(--border);
-    padding: 52px 24px 40px;
-    text-align: center;
+    padding: 40px 24px 32px;
     position: relative;
     overflow: hidden;
   }
@@ -48,8 +47,23 @@
     top: -30px; left: 50%; transform: translateX(-50%);
     pointer-events: none;
   }
+  .hero-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 24px;
+    max-width: 1100px;
+    margin: 0 auto;
+  }
+  @media (max-width: 740px) {
+    .hero-grid { grid-template-columns: 1fr; }
+  }
+  .hero-profile {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+  }
   .hero-title {
-    font-size: clamp(2rem, 5vw, 3.2rem);
+    font-size: clamp(1.6rem, 4vw, 2.6rem);
     font-weight: 800;
     letter-spacing: -1px;
     color: var(--text);
@@ -63,9 +77,9 @@
   }
   .hero-fullname strong { color: var(--gold); font-weight: 600; }
   .hero-bio {
-    max-width: 520px;
-    margin: 12px auto 0;
-    font-size: 0.9rem;
+    max-width: 480px;
+    margin: 10px 0 0;
+    font-size: 0.88rem;
     color: var(--muted);
     font-style: italic;
     line-height: 1.5;
@@ -73,9 +87,8 @@
   .hero-pills {
     display: flex;
     gap: 8px;
-    justify-content: center;
     flex-wrap: wrap;
-    margin-top: 14px;
+    margin-top: 12px;
   }
   .hero-pill {
     background: rgba(255,255,255,0.05);
@@ -94,7 +107,118 @@
     margin-top: 10px;
   }
   .hero-joined strong { color: var(--muted); }
-  .hero-badges { margin-top: 16px; display: flex; gap: 10px; justify-content: center; flex-wrap: wrap; }
+  .hero-badges { margin-top: 14px; display: flex; gap: 10px; flex-wrap: wrap; }
+
+  /* ── Hero: favourite films ── */
+  .hero-favs {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+  }
+  .hero-cell-title {
+    font-size: 0.82rem;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    color: var(--dim);
+    font-weight: 600;
+    margin: 0;
+  }
+  .hero-poster-row {
+    display: flex;
+    gap: 10px;
+  }
+  .hero-poster {
+    flex: 1;
+    border-radius: 6px;
+    overflow: hidden;
+    background: rgba(255,255,255,0.04);
+    border: 1px solid var(--border);
+    display: flex;
+    flex-direction: column;
+  }
+  .hero-poster img {
+    width: 100%;
+    aspect-ratio: 2/3;
+    object-fit: cover;
+    display: block;
+  }
+  .hero-poster--empty {
+    aspect-ratio: 2/3;
+    display: flex;
+    align-items: flex-end;
+    justify-content: center;
+  }
+  .hero-poster-label {
+    display: block;
+    padding: 4px 6px;
+    font-size: 0.68rem;
+    color: var(--muted);
+    text-align: center;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  /* ── Hero: person cards ── */
+  .hero-cell {
+    display: flex;
+    align-items: center;
+  }
+  .hero-person {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    background: rgba(255,255,255,0.03);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 16px 20px;
+    width: 100%;
+  }
+  .hero-person img {
+    width: 72px;
+    height: 72px;
+    border-radius: 50%;
+    object-fit: cover;
+    flex-shrink: 0;
+    border: 2px solid var(--border);
+  }
+  .hero-person-nophoto {
+    width: 72px;
+    height: 72px;
+    border-radius: 50%;
+    background: rgba(255,255,255,0.06);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 28px;
+    flex-shrink: 0;
+  }
+  .hero-person-info {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+  }
+  .hero-person-role {
+    font-size: 0.72rem;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    color: var(--dim);
+    font-weight: 600;
+  }
+  .hero-person-name {
+    font-size: 1.1rem;
+    font-weight: 700;
+    color: var(--text);
+  }
+  .hero-person-count {
+    font-size: 0.8rem;
+    color: var(--muted);
+  }
+  .hero-person-empty {
+    font-size: 0.85rem;
+    color: var(--dim);
+    font-style: italic;
+  }
 
   /* ── Badges ── */
   .badge {
@@ -436,12 +560,30 @@
 
 <!-- ── HERO ── -->
 <header class="hero">
-  <h1 class="hero-title"><span>@limapictures</span>'s Film Habits</h1>
-  <p class="hero-fullname"><strong>lucas</strong></p>
-  <p class="hero-bio">🌀There is a fifth dimension beyond that which is known to man...🌀</p>
-  <div class="hero-pills"><span class="hero-pill">He / his</span><span class="hero-pill">❤ 4 favorite films</span></div>
-  <p class="hero-joined">Member since <strong>2022-07-31</strong></p>
-  <div class="hero-badges"><span class="badge badge--green">TMDB enriched</span></div>
+  <div class="hero-grid">
+    <!-- Top-left: profile text -->
+    <div class="hero-profile">
+      <h1 class="hero-title"><span>@limapictures</span>'s Film Habits</h1>
+      <p class="hero-fullname"><strong>lucas</strong></p>
+      <p class="hero-bio">🌀There is a fifth dimension beyond that which is known to man...🌀</p>
+      <div class="hero-pills"><span class="hero-pill">He / his</span></div>
+      <p class="hero-joined">Member since <strong>2022-07-31</strong></p>
+      <div class="hero-badges"><span class="badge badge--green">TMDB enriched</span></div>
+    </div>
+    <!-- Top-right: 4 favourite film posters -->
+    <div class="hero-favs">
+      <h3 class="hero-cell-title">Favorite Films</h3>
+      <div class="hero-poster-row"><div class="hero-poster"><img src="https://image.tmdb.org/t/p/w300/qRzRKMjxWx1ogpGy77mTCjU4bRt.jpg" alt="World on a Wire" loading="lazy"><span class="hero-poster-label">World on a Wire (1973)</span></div><div class="hero-poster"><img src="https://image.tmdb.org/t/p/w300/znfLskGQnXYB2xcOGM9eInRHPAV.jpg" alt="Barry Lyndon" loading="lazy"><span class="hero-poster-label">Barry Lyndon (1975)</span></div><div class="hero-poster"><img src="https://image.tmdb.org/t/p/w300/43LZYSBRMZoi9QdYntkGXhLSMeI.jpg" alt="Kuroneko" loading="lazy"><span class="hero-poster-label">Kuroneko (1968)</span></div><div class="hero-poster"><img src="https://image.tmdb.org/t/p/w300/1O8ZQ9tCIdpT1dAMvwWX9hToW2H.jpg" alt="All the Colours of the Dark" loading="lazy"><span class="hero-poster-label">All the Colours of the Dark (1972)</span></div></div>
+    </div>
+    <!-- Bottom-left: favourite director -->
+    <div class="hero-cell">
+      <div class="hero-person"><img src="https://image.tmdb.org/t/p/w185/108fiNM6poRieMg7RIqLJRxdAwG.jpg" alt="Alfred Hitchcock" loading="lazy"><div class="hero-person-info"><span class="hero-person-role">Favorite Director</span><span class="hero-person-name">Alfred Hitchcock</span><span class="hero-person-count">24 films</span></div></div>
+    </div>
+    <!-- Bottom-right: favourite actor -->
+    <div class="hero-cell">
+      <div class="hero-person"><img src="https://image.tmdb.org/t/p/w185/ui8e4sgZAwMPi3hzEO53jyBJF9B.jpg" alt="Willem Dafoe" loading="lazy"><div class="hero-person-info"><span class="hero-person-role">Favorite Actor</span><span class="hero-person-name">Willem Dafoe</span><span class="hero-person-count">13 films</span></div></div>
+    </div>
+  </div>
 </header>
 
 <div class="container">
@@ -614,7 +756,7 @@
         <div class="chart-wrap chart-wrap--square">
             <canvas id="chartLengths"></canvas>
         </div>
-        <div class="len-legend"><div class="len-item"><span class="len-dot" style="background:#4ac8e8"></span><span class="len-label">Short (< 60 min)</span><span class="len-val">17 <span class="len-pct">(3%)</span></span></div><div class="len-item"><span class="len-dot" style="background:#00c030"></span><span class="len-label">Medium (60-120 min)</span><span class="len-val">356 <span class="len-pct">(63%)</span></span></div><div class="len-item"><span class="len-dot" style="background:#e8c04a"></span><span class="len-label">Long (> 120 min)</span><span class="len-val">190 <span class="len-pct">(34%)</span></span></div></div>
+        <div class="len-legend"><div class="len-item"><span class="len-dot" style="background:#4ac8e8"></span><span class="len-label">Short (< 60 min)</span><span class="len-val">17 <span class="len-pct">(3%)</span></span></div><div class="len-item"><span class="len-dot" style="background:#00c030"></span><span class="len-label">Medium (60-120 min)</span><span class="len-val">357 <span class="len-pct">(63%)</span></span></div><div class="len-item"><span class="len-dot" style="background:#e8c04a"></span><span class="len-label">Long (> 120 min)</span><span class="len-val">190 <span class="len-pct">(34%)</span></span></div></div>
     </div>
     <script>
     new Chart(document.getElementById('chartLengths'), {
@@ -622,7 +764,7 @@
         data: {
             labels: ["Short (< 60 min)", "Medium (60-120 min)", "Long (> 120 min)"],
             datasets: [{
-                data: [17, 356, 190],
+                data: [17, 357, 190],
                 backgroundColor: ["#4ac8e8", "#00c030", "#e8c04a"],
                 borderColor: '#161618',
                 borderWidth: 3,
@@ -635,7 +777,7 @@
                 legend: { display: false },
                 tooltip: {
                     callbacks: {
-                        label: ctx => ` ${ctx.parsed} films (${Math.round(ctx.parsed / 563 * 100)}%)`
+                        label: ctx => ` ${ctx.parsed} films (${Math.round(ctx.parsed / 564 * 100)}%)`
                     }
                 }
             }
@@ -649,12 +791,12 @@
         
     <div class="runtime-stats">
         <div class="runtime-card">
-            <span class="runtime-value">1061.8h</span>
+            <span class="runtime-value">1063.5h</span>
             <span class="runtime-label">Total screen time</span>
-            <span class="runtime-sub">≈ 44.2 full days</span>
+            <span class="runtime-sub">≈ 44.3 full days</span>
         </div>
         <div class="runtime-card">
-            <span class="runtime-value">113.2m</span>
+            <span class="runtime-value">113.1m</span>
             <span class="runtime-label">Avg film length</span>
         </div>
     </div>
@@ -673,7 +815,7 @@
         </div>
         <table class="data-table">
             <thead><tr><th>Genre</th><th>Films</th><th>Avg ★</th></tr></thead>
-            <tbody><tr><td>Drama</td><td class="num">251</td><td class="num rating-val">3.85★</td></tr><tr><td>Thriller</td><td class="num">205</td><td class="num rating-val">3.78★</td></tr><tr><td>Horror</td><td class="num">185</td><td class="num rating-val">3.64★</td></tr><tr><td>Mystery</td><td class="num">131</td><td class="num rating-val">3.83★</td></tr><tr><td>Crime</td><td class="num">95</td><td class="num rating-val">3.82★</td></tr><tr><td>Comedy</td><td class="num">92</td><td class="num rating-val">3.69★</td></tr><tr><td>Science Fiction</td><td class="num">90</td><td class="num rating-val">3.45★</td></tr><tr><td>Adventure</td><td class="num">62</td><td class="num rating-val">3.62★</td></tr><tr><td>Action</td><td class="num">60</td><td class="num rating-val">3.59★</td></tr><tr><td>Fantasy</td><td class="num">60</td><td class="num rating-val">3.76★</td></tr></tbody>
+            <tbody><tr><td>Drama</td><td class="num">252</td><td class="num rating-val">3.85★</td></tr><tr><td>Thriller</td><td class="num">205</td><td class="num rating-val">3.78★</td></tr><tr><td>Horror</td><td class="num">185</td><td class="num rating-val">3.64★</td></tr><tr><td>Mystery</td><td class="num">132</td><td class="num rating-val">3.84★</td></tr><tr><td>Crime</td><td class="num">95</td><td class="num rating-val">3.82★</td></tr><tr><td>Comedy</td><td class="num">92</td><td class="num rating-val">3.69★</td></tr><tr><td>Science Fiction</td><td class="num">90</td><td class="num rating-val">3.45★</td></tr><tr><td>Adventure</td><td class="num">62</td><td class="num rating-val">3.62★</td></tr><tr><td>Action</td><td class="num">60</td><td class="num rating-val">3.59★</td></tr><tr><td>Fantasy</td><td class="num">60</td><td class="num rating-val">3.76★</td></tr></tbody>
         </table>
     </div>
     <script>
@@ -682,7 +824,7 @@
         data: {
             labels: ["Drama", "Thriller", "Horror", "Mystery", "Crime", "Comedy", "Science Fiction", "Adventure", "Action", "Fantasy"],
             datasets: [{
-                data: [251, 205, 185, 131, 95, 92, 90, 62, 60, 60],
+                data: [252, 205, 185, 132, 95, 92, 90, 62, 60, 60],
                 backgroundColor: ["#e8c04a", "#00c030", "#4a7ae8", "#e85a4a", "#c04ae8", "#4ac8e8", "#e8944a", "#4ae87a", "#a0e84a", "#e86c4a"],
                 borderColor: '#161618',
                 borderWidth: 2,
@@ -718,7 +860,7 @@
             labels: ["United States of America", "United Kingdom", "France", "Germany", "Brazil", "Italy", "Japan", "Canada", "South Korea", "Spain", "Sweden", "New Zealand", "Ireland", "Poland", "Denmark"],
             datasets: [{
                 label: 'Films',
-                data: [352, 85, 60, 44, 41, 38, 34, 23, 14, 14, 12, 10, 8, 8, 7],
+                data: [352, 85, 60, 45, 41, 38, 34, 23, 14, 14, 12, 10, 8, 8, 7],
                 backgroundColor: 'rgba(74,200,232,0.8)',
                 borderColor:     'rgba(74,200,232,1)',
                 borderWidth: 1,
@@ -888,7 +1030,7 @@
     
     <section class="card ">
         <h2 class="section-title"><span class="icon">⚧</span>Gender Distribution</h2>
-        <div class="gender-layout"><div class="gender-block"><h3 class="gender-subtitle">Directors</h3><div class="gender-row"><span class="gender-dot" style="background:#e84a9a"></span><span class="gender-label">Female</span><div class="gender-bar-bg"><div class="gender-bar-fill" style="width:3.5%;background:#e84a9a"></div></div><span class="gender-pct">3.5%</span><span class="gender-count">(21)</span></div><div class="gender-row"><span class="gender-dot" style="background:#4a7ae8"></span><span class="gender-label">Male</span><div class="gender-bar-bg"><div class="gender-bar-fill" style="width:95.5%;background:#4a7ae8"></div></div><span class="gender-pct">95.5%</span><span class="gender-count">(570)</span></div><div class="gender-row"><span class="gender-dot" style="background:#888"></span><span class="gender-label">Other/N.A.</span><div class="gender-bar-bg"><div class="gender-bar-fill" style="width:1.0%;background:#888"></div></div><span class="gender-pct">1.0%</span><span class="gender-count">(6)</span></div></div><div class="gender-block"><h3 class="gender-subtitle">Cast (top 10 per film)</h3><div class="gender-row"><span class="gender-dot" style="background:#e84a9a"></span><span class="gender-label">Female</span><div class="gender-bar-bg"><div class="gender-bar-fill" style="width:31.4%;background:#e84a9a"></div></div><span class="gender-pct">31.4%</span><span class="gender-count">(1727)</span></div><div class="gender-row"><span class="gender-dot" style="background:#4a7ae8"></span><span class="gender-label">Male</span><div class="gender-bar-bg"><div class="gender-bar-fill" style="width:61.9%;background:#4a7ae8"></div></div><span class="gender-pct">61.9%</span><span class="gender-count">(3403)</span></div><div class="gender-row"><span class="gender-dot" style="background:#888"></span><span class="gender-label">Other/N.A.</span><div class="gender-bar-bg"><div class="gender-bar-fill" style="width:6.7%;background:#888"></div></div><span class="gender-pct">6.7%</span><span class="gender-count">(369)</span></div></div></div>
+        <div class="gender-layout"><div class="gender-block"><h3 class="gender-subtitle">Directors</h3><div class="gender-row"><span class="gender-dot" style="background:#e84a9a"></span><span class="gender-label">Female</span><div class="gender-bar-bg"><div class="gender-bar-fill" style="width:3.5%;background:#e84a9a"></div></div><span class="gender-pct">3.5%</span><span class="gender-count">(21)</span></div><div class="gender-row"><span class="gender-dot" style="background:#4a7ae8"></span><span class="gender-label">Male</span><div class="gender-bar-bg"><div class="gender-bar-fill" style="width:95.5%;background:#4a7ae8"></div></div><span class="gender-pct">95.5%</span><span class="gender-count">(571)</span></div><div class="gender-row"><span class="gender-dot" style="background:#888"></span><span class="gender-label">Other/N.A.</span><div class="gender-bar-bg"><div class="gender-bar-fill" style="width:1.0%;background:#888"></div></div><span class="gender-pct">1.0%</span><span class="gender-count">(6)</span></div></div><div class="gender-block"><h3 class="gender-subtitle">Cast (top 10 per film)</h3><div class="gender-row"><span class="gender-dot" style="background:#e84a9a"></span><span class="gender-label">Female</span><div class="gender-bar-bg"><div class="gender-bar-fill" style="width:31.4%;background:#e84a9a"></div></div><span class="gender-pct">31.4%</span><span class="gender-count">(1731)</span></div><div class="gender-row"><span class="gender-dot" style="background:#4a7ae8"></span><span class="gender-label">Male</span><div class="gender-bar-bg"><div class="gender-bar-fill" style="width:61.9%;background:#4a7ae8"></div></div><span class="gender-pct">61.9%</span><span class="gender-count">(3409)</span></div><div class="gender-row"><span class="gender-dot" style="background:#888"></span><span class="gender-label">Other/N.A.</span><div class="gender-bar-bg"><div class="gender-bar-fill" style="width:6.7%;background:#888"></div></div><span class="gender-pct">6.7%</span><span class="gender-count">(369)</span></div></div></div>
     </section>
   </div>
 
