@@ -10,9 +10,12 @@ film is only requested from the API once.
 import json
 import os
 import re
+import threading
 import time
 import warnings
 from collections import Counter
+from collections import deque
+from concurrent.futures import ThreadPoolExecutor, as_completed
 from pathlib import Path
 
 import pandas as pd
@@ -27,34 +30,57 @@ TMDB_BASE  = "https://api.themoviedb.org/3"
 # ── TMDB key resolution ─────────────────────────────────────────────────────────
 
 def get_tmdb_api_key() -> str:
-    key = os.environ.get("TMDB_API_KEY", "")
-    if not key:
-        key_file = Path(__file__).parent / "tmdb_api_key.txt"
-        if key_file.exists():
-            key = key_file.read_text(encoding="utf-8").strip()
-    return key
+    return os.environ.get("TMDB_API_KEY", "").strip()
 
 
 # ── TMDB cache (module-level singleton) ─────────────────────────────────────────
 
 _cache: dict        = {}
 _cache_loaded: bool = False
+_cache_lock          = threading.Lock()
+_rate_lock           = threading.Lock()
+_tmdb_request_times: deque[float] = deque()
+
+
+def _wait_for_tmdb_slot(max_requests: int = 40, window_seconds: float = 1.0) -> None:
+    with _rate_lock:
+        now = time.monotonic()
+        cutoff = now - window_seconds
+
+        while _tmdb_request_times and _tmdb_request_times[0] <= cutoff:
+            _tmdb_request_times.popleft()
+
+        if len(_tmdb_request_times) >= max_requests:
+            sleep_for = _tmdb_request_times[0] + window_seconds - now
+            if sleep_for > 0:
+                _rate_lock.release()
+                time.sleep(sleep_for)
+                _rate_lock.acquire()
+
+            now = time.monotonic()
+            cutoff = now - window_seconds
+            while _tmdb_request_times and _tmdb_request_times[0] <= cutoff:
+                _tmdb_request_times.popleft()
+
+        _tmdb_request_times.append(time.monotonic())
 
 
 def _load_cache() -> None:
     global _cache, _cache_loaded
-    if _cache_loaded:
-        return
-    if CACHE_FILE.exists():
-        with open(CACHE_FILE, encoding="utf-8") as f:
-            _cache = json.load(f)
-    _cache_loaded = True
+    with _cache_lock:
+        if _cache_loaded:
+            return
+        if CACHE_FILE.exists():
+            with open(CACHE_FILE, encoding="utf-8") as f:
+                _cache = json.load(f)
+        _cache_loaded = True
 
 
 def _save_cache() -> None:
-    CACHE_FILE.parent.mkdir(parents=True, exist_ok=True)
-    with open(CACHE_FILE, "w", encoding="utf-8") as f:
-        json.dump(_cache, f, ensure_ascii=False, indent=2)
+    with _cache_lock:
+        CACHE_FILE.parent.mkdir(parents=True, exist_ok=True)
+        with open(CACHE_FILE, "w", encoding="utf-8") as f:
+            json.dump(_cache, f, ensure_ascii=False, indent=2)
 
 
 # ── TMDB fetch ──────────────────────────────────────────────────────────────────
@@ -67,22 +93,26 @@ def _fetch_tmdb(name: str, year, api_key: str) -> dict | None:
     """
     _load_cache()
     cache_key = f"{name}|||{year}"
-    if cache_key in _cache:
-        return _cache[cache_key]
+    with _cache_lock:
+        if cache_key in _cache:
+            return _cache[cache_key]
 
     params: dict = {"api_key": api_key, "query": name, "language": "en-US"}
     if pd.notna(year):
         params["year"] = int(year)
 
     try:
+        _wait_for_tmdb_slot()
         resp = requests.get(f"{TMDB_BASE}/search/movie", params=params, timeout=8)
         resp.raise_for_status()
         results = resp.json().get("results", [])
         if not results:
-            _cache[cache_key] = None
+            with _cache_lock:
+                _cache[cache_key] = None
             return None
 
         movie_id = results[0]["id"]
+        _wait_for_tmdb_slot()
         detail = requests.get(
             f"{TMDB_BASE}/movie/{movie_id}",
             params={"api_key": api_key, "append_to_response": "credits"},
@@ -106,28 +136,45 @@ def _fetch_tmdb(name: str, year, api_key: str) -> dict | None:
             "vote_average":     d.get("vote_average"),
             "vote_count":       d.get("vote_count"),
         }
-        _cache[cache_key] = meta
-        time.sleep(0.26)  # stay within TMDB free-tier rate limit (~40 req/s)
+        with _cache_lock:
+            _cache[cache_key] = meta
         return meta
 
     except Exception:
-        _cache[cache_key] = None
+        with _cache_lock:
+            _cache[cache_key] = None
         return None
 
 
 def _enrich(watched: pd.DataFrame, api_key: str) -> list[dict | None]:
     """
-    Fetch TMDB metadata for every film in *watched*.
-    Saves the cache periodically to avoid data loss on large lists.
-    Returns a list of metadata dicts (or None for not-found entries).
+    Fetch TMDB metadata for every film in *watched* using concurrent requests.
+    Up to 20 threads run in parallel while the shared rate-limiter keeps
+    total throughput at 40 TMDB requests per second.
     """
-    total  = len(watched)
-    result = []
-    for i, (_, row) in enumerate(watched.iterrows(), start=1):
-        if i % 50 == 0:
-            print(f"  [TMDB] {i}/{total} films fetched...")
-            _save_cache()
-        result.append(_fetch_tmdb(row["Name"], row.get("Year"), api_key))
+    total = len(watched)
+    rows  = list(watched.iterrows())
+    result: list[dict | None] = [None] * total
+    done   = 0
+    done_lock = threading.Lock()
+
+    def _task(idx: int, row: pd.Series) -> tuple[int, dict | None]:
+        return idx, _fetch_tmdb(row["Name"], row.get("Year"), api_key)
+
+    with ThreadPoolExecutor(max_workers=20) as pool:
+        futures = {
+            pool.submit(_task, i, row): i
+            for i, (_, row) in enumerate(rows)
+        }
+        for future in as_completed(futures):
+            idx, meta = future.result()
+            result[idx] = meta
+            with done_lock:
+                done += 1
+                if done % 50 == 0:
+                    print(f"  [TMDB] {done}/{total} films fetched...")
+                    _save_cache()
+
     _save_cache()
     return result
 
