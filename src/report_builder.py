@@ -9,7 +9,7 @@ import json
 import sys
 from pathlib import Path
 
-from analyzer import load_data, get_all_stats
+from .analyzer import load_data, get_all_stats
 
 
 # ── Helpers ─────────────────────────────────────────────────────────────────────
@@ -1491,12 +1491,13 @@ def generate_html(stats: dict) -> str:
 # ── Entry point ──────────────────────────────────────────────────────────────────
 
 def main() -> None:
+    _root = Path(__file__).parent.parent
     if len(sys.argv) > 1:
         zip_path = Path(sys.argv[1])
     else:
-        candidates = sorted(Path(__file__).parent.glob("*.zip"))
+        candidates = sorted((_root / "data").glob("*.zip"))
         if not candidates:
-            print("Error: no .zip file provided and none found in the project root.", file=sys.stderr)
+            print("Error: no .zip file provided and none found in data/.", file=sys.stderr)
             sys.exit(1)
         zip_path = candidates[0]
 
@@ -1509,10 +1510,11 @@ def main() -> None:
     print("Generating HTML...")
     html = generate_html(stats)
 
-    out = Path(__file__).parent / "report.html"
+    out = _root / "output" / "report.html"
+    out.parent.mkdir(parents=True, exist_ok=True)
     out.write_text(html, encoding="utf-8")
     print(f"\nReport saved: {out.resolve()}")
-    print("Open report.html in your browser to view your film habits dashboard.")
+    print("Open output/report.html in your browser to view your film habits dashboard.")
 
 
 if __name__ == "__main__":

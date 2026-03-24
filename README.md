@@ -39,20 +39,20 @@ A free API key can be obtained at [themoviedb.org/settings/api](https://www.them
 ## Usage
 
 1. Export your data from Letterboxd: **Settings → Data → Export Your Data**
-2. Place the downloaded `.zip` file in the project root
+2. Place the downloaded `.zip` file in `data/`
 3. Run:
 
 ```bash
-python generate_report.py
+python main.py
 ```
 
 Or specify the path explicitly:
 
 ```bash
-python generate_report.py path/to/letterboxd-export.zip
+python main.py path/to/letterboxd-export.zip
 ```
 
-4. Open `report.html` in your browser
+4. Open `output/report.html` in your browser
 
 ## Caching
 

@@ -24,7 +24,8 @@ import requests
 
 # ── Paths ───────────────────────────────────────────────────────────────────────
 _SCRIPT_DIR = Path(__file__).parent
-CACHE_FILE  = _SCRIPT_DIR / "cache" / "tmdb_cache.json"
+_ROOT_DIR   = _SCRIPT_DIR.parent
+CACHE_FILE  = _ROOT_DIR / "cache" / "tmdb_cache.json"
 TMDB_BASE   = "https://api.themoviedb.org/3"
 
 
@@ -935,15 +936,16 @@ def get_all_stats(data: dict) -> dict:
 if __name__ == "__main__":
     import sys
     if len(sys.argv) < 2:
-        candidates = sorted(_SCRIPT_DIR.glob("*.zip"))
+        candidates = sorted((_ROOT_DIR / "data").glob("*.zip"))
         if not candidates:
-            print("Usage: python analyzer.py <export.zip>", file=sys.stderr)
+            print("Usage: python -m src.analyzer <export.zip>", file=sys.stderr)
             sys.exit(1)
         _zip = candidates[0]
     else:
         _zip = Path(sys.argv[1])
     data  = load_data(_zip)
     stats = get_all_stats(data)
-    out   = Path("stats.json")
+    out   = _ROOT_DIR / "output" / "stats.json"
+    out.parent.mkdir(parents=True, exist_ok=True)
     out.write_text(json.dumps(stats, indent=2, default=str), encoding="utf-8")
     print(f"\nStats written to {out}")

@@ -10,9 +10,9 @@ import sys
 from datetime import datetime
 from pathlib import Path
 
-from analyzer import load_data, get_all_stats
+from .analyzer import load_data, get_all_stats
 
-OUTPUT_FILE = Path(__file__).parent / "report.html"
+OUTPUT_FILE = Path(__file__).parent.parent / "output" / "report.html"
 
 
 # ── Entry point ────────────────────────────────────────────────────────────────
@@ -22,7 +22,7 @@ def generate_report(zip_path: str | Path | None = None) -> None:
         if len(sys.argv) > 1:
             zip_path = Path(sys.argv[1])
         else:
-            candidates = sorted(Path(__file__).parent.glob("*.zip"))
+            candidates = sorted((Path(__file__).parent.parent / "data").glob("*.zip"))
             if not candidates:
                 print("Error: no .zip file provided and none found in the project root.", file=sys.stderr)
                 sys.exit(1)
