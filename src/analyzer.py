@@ -471,6 +471,34 @@ def get_activity_by_year(data: dict) -> dict[int, int]:
     return {int(y): int(c) for y, c in counts.items()}
 
 
+def get_favorite_years(data: dict, n: int = 5, min_films_rating: int = 4) -> dict:
+    """
+    Top-n release years by:
+      - most_watched: release years with the most films watched.
+      - best_rated:   release years with the highest avg user rating (min *min_films_rating* rated).
+    """
+    watched = data["watched"].dropna(subset=["Year"]).copy()
+    watched["_year"] = watched["Year"].astype(int)
+    count_by_year = (
+        watched.groupby("_year").size()
+        .sort_values(ascending=False)
+        .head(n)
+    )
+    most_watched = [{"year": int(y), "count": int(c)} for y, c in count_by_year.items()]
+
+    ratings = data["ratings"].dropna(subset=["Rating", "Year"]).copy()
+    ratings["_year"] = ratings["Year"].astype(int)
+    agg = ratings.groupby("_year")["Rating"].agg(["mean", "count"])
+    agg = agg[agg["count"] >= min_films_rating]
+    agg = agg.sort_values("mean", ascending=False).head(n)
+    best_rated = [
+        {"year": int(y), "avg": round(float(row["mean"]), 2), "count": int(row["count"])}
+        for y, row in agg.iterrows()
+    ]
+
+    return {"most_watched": most_watched, "best_rated": best_rated}
+
+
 def get_activity_by_month(data: dict) -> dict[str, int]:
     """
     Number of films logged per month across all years (Jan–Dec totals).
@@ -765,7 +793,7 @@ def get_current_year_films(data: dict) -> dict:
 
 # ── Watched: deeper insights ────────────────────────────────────────────────────
 
-def get_top_rated_directors(data: dict, n: int = 12, min_films: int = 2) -> list[dict]:
+def get_top_rated_directors(data: dict, n: int = 12, min_films: int = 4) -> list[dict]:
     """
     Directors ranked by the user's own average rating for their films.
     Only directors with at least *min_films* entries are included.
@@ -889,6 +917,7 @@ def get_all_stats(data: dict) -> dict:
         ("Profile",              lambda: get_profile_info(data)),
         ("Rating distribution",  lambda: get_rating_distribution(data)),
         ("Activity by year",     lambda: get_activity_by_year(data)),
+        ("Favorite years",       lambda: get_favorite_years(data)),
         ("Activity by month",    lambda: get_activity_by_month(data)),
         ("Decade breakdown",     lambda: get_decade_breakdown(data)),
         ("Top-rated films",      lambda: get_top_rated_films(data)),
@@ -914,7 +943,7 @@ def get_all_stats(data: dict) -> dict:
 
     results: dict = {}
     keys = [
-        "profile", "rating_distribution", "activity_by_year", "activity_by_month",
+        "profile", "rating_distribution", "activity_by_year", "favorite_years", "activity_by_month",
         "decade_breakdown", "top_rated_films", "lowest_rated_films", "rewatch_stats",
         "tag_breakdown", "liked_films", "reviews_over_time", "watchlist_by_decade",
         "current_year_films",

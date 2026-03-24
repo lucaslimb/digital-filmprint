@@ -72,7 +72,7 @@ def _build_rating_chart(dist: dict) -> str:
     values  = list(dist.values())
     n = len(labels)
     colors = [
-        f'rgba({round(60 + i/max(n-1,1)*(0-60))},{round(100 + i/max(n-1,1)*(192-100))},{round(60 + i/max(n-1,1)*(48-60))},0.85)'
+        f'rgba({round(100 - i/max(n-1,1)*75)},{round(145 - i/max(n-1,1)*82)},{round(230 - i/max(n-1,1)*50)},0.85)'
         for i in range(n)
     ]
     return f"""
@@ -99,8 +99,8 @@ def _build_rating_chart(dist: dict) -> str:
                 tooltip: {{ callbacks: {{ title: t => t[0].label + ' \u2605' }} }}
             }},
             scales: {{
-                y: {{ beginAtZero: true, ticks: {{ color: '#888' }}, grid: {{ color: '#252525' }} }},
-                x: {{ ticks: {{ color: '#888' }}, grid: {{ display: false }} }}
+                y: {{ beginAtZero: true, ticks: {{ color: '#6b7384' }}, grid: {{ color: '#dde2ec' }} }},
+                x: {{ ticks: {{ color: '#6b7384' }}, grid: {{ display: false }} }}
             }}
         }}
     }});
@@ -124,8 +124,8 @@ def _build_year_chart(by_year: dict) -> str:
             datasets: [{{
                 label: 'Films watched',
                 data: {_j(values)},
-                backgroundColor: 'rgba(0,192,48,0.75)',
-                borderColor:     'rgba(0,224,84,1)',
+                backgroundColor: 'rgba(45,99,216,0.75)',
+                borderColor:     'rgba(45,99,216,1)',
                 borderWidth: 1,
                 borderRadius: 4,
             }}]
@@ -134,8 +134,8 @@ def _build_year_chart(by_year: dict) -> str:
             responsive: true,
             plugins: {{ legend: {{ display: false }} }},
             scales: {{
-                y: {{ beginAtZero: true, ticks: {{ color: '#888' }}, grid: {{ color: '#252525' }} }},
-                x: {{ ticks: {{ color: '#888' }}, grid: {{ display: false }} }}
+                y: {{ beginAtZero: true, ticks: {{ color: '#6b7384' }}, grid: {{ color: '#dde2ec' }} }},
+                x: {{ ticks: {{ color: '#6b7384' }}, grid: {{ display: false }} }}
             }}
         }}
     }});
@@ -148,8 +148,8 @@ def _build_decade_chart(decades: dict) -> str:
     labels = list(decades.keys())
     values = list(decades.values())
     palette = [
-        "#e8c04a","#e8944a","#e85a4a","#c04ae8","#4a7ae8",
-        "#4ac8e8","#4ae87a","#a0e84a","#e8e84a","#e8604a",
+        "#0d2a6b","#1040a0","#1a55c0","#2d6dd8","#4287ee",
+        "#5b9ff4","#7ab5f8","#9acbfb","#b8dffe","#d6f0ff",
     ]
     return f"""
     <div class="chart-wrap">
@@ -173,8 +173,8 @@ def _build_decade_chart(decades: dict) -> str:
             responsive: true,
             plugins: {{ legend: {{ display: false }} }},
             scales: {{
-                x: {{ beginAtZero: true, ticks: {{ color: '#888' }}, grid: {{ color: '#252525' }} }},
-                y: {{ ticks: {{ color: '#ccc' }}, grid: {{ display: false }} }}
+                x: {{ beginAtZero: true, ticks: {{ color: '#6b7384' }}, grid: {{ color: '#dde2ec' }} }},
+                y: {{ ticks: {{ color: '#4a5568' }}, grid: {{ display: false }} }}
             }}
         }}
     }});
@@ -198,8 +198,8 @@ def _build_month_chart(by_month: dict) -> str:
             datasets: [{{
                 label: 'Films',
                 data: {_j(values)},
-                backgroundColor: 'rgba(232,192,74,0.8)',
-                borderColor:     'rgba(232,192,74,1)',
+                backgroundColor: 'rgba(45,99,216,0.8)',
+                borderColor:     'rgba(45,99,216,1)',
                 borderWidth: 1,
                 borderRadius: 4,
             }}]
@@ -208,8 +208,8 @@ def _build_month_chart(by_month: dict) -> str:
             responsive: true,
             plugins: {{ legend: {{ display: false }} }},
             scales: {{
-                y: {{ beginAtZero: true, ticks: {{ color: '#888' }}, grid: {{ color: '#252525' }} }},
-                x: {{ ticks: {{ color: '#888' }}, grid: {{ display: false }} }}
+                y: {{ beginAtZero: true, ticks: {{ color: '#6b7384' }}, grid: {{ color: '#dde2ec' }} }},
+                x: {{ ticks: {{ color: '#6b7384' }}, grid: {{ display: false }} }}
             }}
         }}
     }});
@@ -234,8 +234,8 @@ def _build_directors_section(directors: list) -> str:
             datasets: [{{
                 label: 'Films watched',
                 data: {_j(values)},
-                backgroundColor: 'rgba(74,160,232,0.8)',
-                borderColor:     'rgba(74,160,232,1)',
+                backgroundColor: 'rgba(45,99,216,0.8)',
+                borderColor:     'rgba(45,99,216,1)',
                 borderWidth: 1,
                 borderRadius: 4,
             }}]
@@ -245,8 +245,8 @@ def _build_directors_section(directors: list) -> str:
             responsive: true,
             plugins: {{ legend: {{ display: false }} }},
             scales: {{
-                x: {{ beginAtZero: true, ticks: {{ color: '#888', stepSize: 1 }}, grid: {{ color: '#252525' }} }},
-                y: {{ ticks: {{ color: '#ddd' }}, grid: {{ display: false }} }}
+                x: {{ beginAtZero: true, ticks: {{ color: '#6b7384', stepSize: 1 }}, grid: {{ color: '#dde2ec' }} }},
+                y: {{ ticks: {{ color: '#4a5568' }}, grid: {{ display: false }} }}
             }}
         }}
     }});
@@ -259,8 +259,8 @@ def _build_genres_section(genres: list) -> str:
     labels   = [g["genre"]      for g in genres]
     counts   = [g["count"]      for g in genres]
     avgs     = [g["avg_rating"] or 0 for g in genres]
-    palette  = ["#e8c04a","#00c030","#4a7ae8","#e85a4a","#c04ae8",
-                "#4ac8e8","#e8944a","#4ae87a","#a0e84a","#e86c4a"]
+    palette  = ["#0d2a6b","#1040a0","#1a55c0","#2d6dd8","#4287ee",
+                "#5b9ff4","#7ab5f8","#9acbfb","#b8dffe","#d6f0ff"]
     rows = "".join(
         f'<tr><td>{g["genre"]}</td><td class="num">{g["count"]}</td>'
         f'<td class="num rating-val">'
@@ -286,7 +286,7 @@ def _build_genres_section(genres: list) -> str:
             datasets: [{{
                 data: {_j(counts)},
                 backgroundColor: {_j(palette[:len(labels)])},
-                borderColor: '#161618',
+                borderColor: '#ffffff',
                 borderWidth: 2,
             }}]
         }},
@@ -295,7 +295,7 @@ def _build_genres_section(genres: list) -> str:
             plugins: {{
                 legend: {{
                     position: 'bottom',
-                    labels: {{ color: '#ccc', padding: 14, boxWidth: 12 }}
+                    labels: {{ color: '#4a5568', padding: 14, boxWidth: 12 }}
                 }}
             }}
         }}
@@ -323,13 +323,12 @@ def _build_top_rated_table(films: list) -> str:
         f'<td class="film-name">{f["Name"]}</td>'
         f'<td class="film-year">{int(f["Year"]) if f["Year"] else "—"}</td>'
         f'<td class="stars">{_stars(float(f["Rating"]))}</td>'
-        f'<td class="num">{f["Rating"]}</td>'
         f'</tr>'
         for i, f in enumerate(films)
     )
     return f"""
     <table class="data-table">
-        <thead><tr><th>#</th><th>Film</th><th>Year</th><th>Stars</th><th>Rating</th></tr></thead>
+        <thead><tr><th>#</th><th>Film</th><th>Year</th><th>Stars</th></tr></thead>
         <tbody>{rows}</tbody>
     </table>"""
 
@@ -406,8 +405,8 @@ def _build_reviews_chart(reviews: dict) -> str:
             datasets: [{{
                 label: 'Reviews written',
                 data: {_j(values)},
-                backgroundColor: 'rgba(192,74,232,0.8)',
-                borderColor:     'rgba(192,74,232,1)',
+                backgroundColor: 'rgba(45,99,216,0.8)',
+                borderColor:     'rgba(45,99,216,1)',
                 borderWidth: 1,
                 borderRadius: 4,
             }}]
@@ -416,8 +415,8 @@ def _build_reviews_chart(reviews: dict) -> str:
             responsive: true,
             plugins: {{ legend: {{ display: false }} }},
             scales: {{
-                y: {{ beginAtZero: true, ticks: {{ color:'#888', stepSize:1 }}, grid:{{ color:'#252525' }} }},
-                x: {{ ticks:{{ color:'#888' }}, grid:{{ display:false }} }}
+                y: {{ beginAtZero: true, ticks: {{ color:'#6b7384', stepSize:1 }}, grid:{{ color:'#dde2ec' }} }},
+                x: {{ ticks:{{ color:'#6b7384' }}, grid:{{ display:false }} }}
             }}
         }}
     }});
@@ -429,7 +428,7 @@ def _build_film_lengths_chart(lengths: dict | None) -> str:
         return _no_data_msg()
     labels = list(lengths.keys())
     values = list(lengths.values())
-    colours = ["#4ac8e8", "#00c030", "#e8c04a"]
+    colours = ["#1a55c0", "#4287ee", "#9acbfb"]
     total = sum(values)
     pct_items = "".join(
         f'<div class="len-item">'
@@ -454,7 +453,7 @@ def _build_film_lengths_chart(lengths: dict | None) -> str:
             datasets: [{{
                 data: {_j(values)},
                 backgroundColor: {_j(colours)},
-                borderColor: '#161618',
+                borderColor: '#ffffff',
                 borderWidth: 3,
             }}]
         }},
@@ -492,8 +491,8 @@ def _build_country_chart(countries: list | None) -> str:
             datasets: [{{
                 label: 'Films',
                 data: {_j(values)},
-                backgroundColor: 'rgba(74,200,232,0.8)',
-                borderColor:     'rgba(74,200,232,1)',
+                backgroundColor: 'rgba(45,99,216,0.8)',
+                borderColor:     'rgba(45,99,216,1)',
                 borderWidth: 1,
                 borderRadius: 4,
             }}]
@@ -503,8 +502,8 @@ def _build_country_chart(countries: list | None) -> str:
             responsive: true,
             plugins: {{ legend: {{ display: false }} }},
             scales: {{
-                x: {{ beginAtZero: true, ticks: {{ color: '#888', stepSize: 1 }}, grid: {{ color: '#252525' }} }},
-                y: {{ ticks: {{ color: '#ddd' }}, grid: {{ display: false }} }}
+                x: {{ beginAtZero: true, ticks: {{ color: '#6b7384', stepSize: 1 }}, grid: {{ color: '#dde2ec' }} }},
+                y: {{ ticks: {{ color: '#4a5568' }}, grid: {{ display: false }} }}
             }}
         }}
     }});
@@ -519,7 +518,7 @@ def _build_gender_section(gender: dict | None) -> str:
         d_labels = ["Female", "Male", "Other/N.A."]
         d_values = [g["female"], g["male"], g["other"]]
         d_pcts   = [g["female_pct"], g["male_pct"], g["other_pct"]]
-        d_colors = ["#e84a9a", "#4a7ae8", "#888"]
+        d_colors = ["#5b98f4", "#1a55c0", "#9ba5b4"]
         pct_items = "".join(
             f'<div class="gender-row">'
             f'<span class="gender-dot" style="background:{d_colors[i]}"></span>'
@@ -548,20 +547,92 @@ def _build_current_year_section(cy: dict) -> str:
         f'<td class="rank">#{i+1}</td>'
         f'<td class="film-name">{f["Name"]}</td>'
         f'<td class="stars">{_stars(float(f["Rating"])) if f.get("Rating") and str(f["Rating"]) != "nan" else ""}</td>'
-        f'<td class="num">{f["Rating"] if f.get("Rating") and str(f["Rating"]) != "nan" else "—"}</td>'
         f'</tr>'
         for i, f in enumerate(films[:20])
     )
     return f"""
     <p class="section-sub">You have watched <strong>{count}</strong> films released in {year}.</p>
     <table class="data-table">
-        <thead><tr><th>#</th><th>Film</th><th>Stars</th><th>Rating</th></tr></thead>
+        <thead><tr><th>#</th><th>Film</th><th>Stars</th></tr></thead>
         <tbody>{rows}</tbody>
     </table>"""
 
 
 
 # ── Watched: deeper insight builders ────────────────────────────────────────────
+
+def _build_favorite_years_chart(fy: dict) -> str:
+    most_watched = fy.get("most_watched", [])
+    best_rated   = fy.get("best_rated",   [])
+    if not most_watched and not best_rated:
+        return _no_data_msg("No year data")
+
+    mw_labels = [str(d["year"]) for d in most_watched]
+    mw_values = [d["count"]    for d in most_watched]
+    br_labels = [str(d["year"]) for d in best_rated]
+    br_values = [d["avg"]      for d in best_rated]
+
+    return f"""
+    <div class="fav-years-layout">
+        <div class="fav-years-half">
+            <p class="fav-years-subtitle">Most Watched (by release year)</p>
+            <div class="chart-wrap chart-wrap--short">
+                <canvas id="chartFavYearsMW"></canvas>
+            </div>
+        </div>
+        <div class="fav-years-half">
+            <p class="fav-years-subtitle">Best Rated (avg ★, min 4 films)</p>
+            <div class="chart-wrap chart-wrap--short">
+                <canvas id="chartFavYearsBR"></canvas>
+            </div>
+        </div>
+    </div>
+    <script>
+    (function() {{
+        const mwCfg = {{
+            type: 'bar',
+            data: {{
+                labels: {_j(mw_labels)},
+                datasets: [{{
+                    data: {_j(mw_values)},
+                    backgroundColor: ['#0d2a6b','#1a55c0','#2d6dd8','#4287ee','#7ab5f8'],
+                    borderWidth: 0, borderRadius: 4,
+                }}]
+            }},
+            options: {{
+                indexAxis: 'y', responsive: true, maintainAspectRatio: false,
+                plugins: {{ legend: {{ display: false }},
+                    tooltip: {{ callbacks: {{ label: c => ` ${{c.raw}} films` }} }} }},
+                scales: {{
+                    x: {{ beginAtZero: true, ticks: {{ color: '#6b7384', stepSize: 1 }}, grid: {{ color: '#dde2ec' }} }},
+                    y: {{ ticks: {{ color: '#4a5568' }}, grid: {{ display: false }} }}
+                }}
+            }}
+        }};
+        const brCfg = {{
+            type: 'bar',
+            data: {{
+                labels: {_j(br_labels)},
+                datasets: [{{
+                    data: {_j(br_values)},
+                    backgroundColor: ['#0d2a6b','#1a55c0','#2d6dd8','#4287ee','#7ab5f8'],
+                    borderWidth: 0, borderRadius: 4,
+                }}]
+            }},
+            options: {{
+                indexAxis: 'y', responsive: true, maintainAspectRatio: false,
+                plugins: {{ legend: {{ display: false }},
+                    tooltip: {{ callbacks: {{ label: c => ` ${{c.raw}}\u2605` }} }} }},
+                scales: {{
+                    x: {{ beginAtZero: false, min: 1, max: 5, ticks: {{ color: '#6b7384' }}, grid: {{ color: '#dde2ec' }} }},
+                    y: {{ ticks: {{ color: '#4a5568' }}, grid: {{ display: false }} }}
+                }}
+            }}
+        }};
+        new Chart(document.getElementById('chartFavYearsMW'), mwCfg);
+        new Chart(document.getElementById('chartFavYearsBR'), brCfg);
+    }})();
+    </script>"""
 
 def _build_top_rated_directors_table(directors: list) -> str:
     if not directors:
@@ -580,7 +651,7 @@ def _build_top_rated_directors_table(directors: list) -> str:
         for i, d in enumerate(directors)
     )
     return f"""
-    <p class="section-sub">Ranked by your average rating (min. 2 films watched). TMDB-powered.</p>
+    <p class="section-sub">Ranked by your average rating (min. 4 films watched). TMDB-powered.</p>
     <table class="data-table">
         <thead><tr><th>#</th><th>Director</th><th>Films</th><th>Rated</th><th>Avg ★</th></tr></thead>
         <tbody>{rows}</tbody>
@@ -594,10 +665,11 @@ def _build_watched_low_popularity_table(films: list) -> str:
 
     def _pop_bar(pop: float) -> str:
         width = min(100, round(pop / max_pop * 100))
-        h = int(40 + (pop / max_pop) * 50)
+        h = int(215 - (pop / max_pop) * 20)
+        lig = int(65 - (pop / max_pop) * 30)
         return (
             f'<div class="pop-bar-bg">'
-            f'<div class="pop-bar-fill" style="width:{width}%;background:hsl({h},80%,45%)"></div>'
+            f'<div class="pop-bar-fill" style="width:{width}%;background:hsl({h},70%,{lig}%)"></div>'
             f'</div>'
         )
 
@@ -611,7 +683,6 @@ def _build_watched_low_popularity_table(films: list) -> str:
         f'<td class="num">{f["vote_average"] if f["vote_average"] else "—"}'
         f'{"★" if f["vote_average"] else ""}</td>'
         f'<td class="stars">{_stars(float(f["rating"])) if f["rating"] else ""}</td>'
-        f'<td class="num">{f["rating"] if f["rating"] else "—"}</td>'
         f'</tr>'
         for i, f in enumerate(films)
     )
@@ -621,7 +692,7 @@ def _build_watched_low_popularity_table(films: list) -> str:
         <thead>
             <tr>
                 <th>#</th><th>Film</th><th>Year</th>
-                <th>Popularity</th><th>TMDB Avg</th><th>Stars</th><th>Your ★</th>
+                <th>Popularity</th><th>TMDB Avg</th><th>Stars</th>
             </tr>
         </thead>
         <tbody>{rows}</tbody>
@@ -633,8 +704,8 @@ def _build_watched_low_popularity_table(films: list) -> str:
 def _build_watchlist_decade_chart(decades: dict) -> str:
     labels  = list(decades.keys())
     values  = list(decades.values())
-    palette = ["#e8c04a","#e8944a","#e85a4a","#c04ae8","#4a7ae8",
-               "#4ac8e8","#4ae87a","#a0e84a","#e8e84a","#4ac8d0"]
+    palette = ["#0d2a6b","#1040a0","#1a55c0","#2d6dd8","#4287ee",
+               "#5b9ff4","#7ab5f8","#9acbfb","#b8dffe","#d6f0ff"]
     return f"""
     <div class="chart-wrap chart-wrap--short">
         <canvas id="chartWlDecade"></canvas>
@@ -656,8 +727,8 @@ def _build_watchlist_decade_chart(decades: dict) -> str:
             responsive: true,
             plugins: {{ legend: {{ display: false }} }},
             scales: {{
-                y: {{ beginAtZero: true, ticks: {{ color: '#888' }}, grid: {{ color: '#252525' }} }},
-                x: {{ ticks: {{ color: '#888' }}, grid: {{ display: false }} }}
+                y: {{ beginAtZero: true, ticks: {{ color: '#6b7384' }}, grid: {{ color: '#dde2ec' }} }},
+                x: {{ ticks: {{ color: '#6b7384' }}, grid: {{ display: false }} }}
             }}
         }}
     }});
@@ -792,7 +863,7 @@ def generate_html(stats: dict) -> str:
     directors_html       = _build_directors_section(stats["directors"])
     genres_html          = _build_genres_section(stats["genres"])
     actors_html          = _build_actors_section(stats["actors"])
-    top_rated_html       = _build_top_rated_table(stats["top_rated_films"])
+    top_rated_html       = _build_top_rated_table(stats["top_rated_films"][:5])
     rewatch_html         = _build_rewatch_section(stats["rewatch_stats"])
     tags_html            = _build_tags_section(stats["tag_breakdown"])
     liked_html           = _build_liked_section(stats["liked_films"])
@@ -803,8 +874,9 @@ def generate_html(stats: dict) -> str:
     gender_html          = _build_gender_section(stats.get("gender_distribution"))
     cy_html              = _build_current_year_section(stats["current_year_films"])
     cy_year              = stats["current_year_films"]["year"]
+    fav_years_html       = _build_favorite_years_chart(stats.get("favorite_years") or {})
     top_rated_dirs_html  = _build_top_rated_directors_table(stats.get("top_rated_directors") or [])
-    low_pop_watched_html = _build_watched_low_popularity_table(stats.get("low_popularity_watched") or [])
+    low_pop_watched_html = _build_watched_low_popularity_table((stats.get("low_popularity_watched") or [])[:10])
     watchlist_html       = _build_watchlist_section(stats["watchlist_analysis"], tmdb_on)
 
     return f"""<!DOCTYPE html>
@@ -818,16 +890,16 @@ def generate_html(stats: dict) -> str:
   /* ── Reset & base ── */
   *, *::before, *::after {{ box-sizing: border-box; margin: 0; padding: 0; }}
   :root {{
-    --bg:       #0c0c0e;
-    --card:     #161618;
-    --border:   #2c2c2e;
-    --accent:   #00c030;
-    --gold:     #e8c04a;
-    --blue:     #4a7ae8;
-    --pink:     #e84a9a;
-    --text:     #f0f0f0;
-    --muted:    #888;
-    --dim:      #444;
+    --bg:       #eef1f6;
+    --card:     #ffffff;
+    --border:   #d0d6e2;
+    --accent:   #2d63d8;
+    --gold:     #2d63d8;
+    --blue:     #2d63d8;
+    --pink:     #7a4cad;
+    --text:     #1a1d26;
+    --muted:    #6b7384;
+    --dim:      #9ba5b4;
     --radius:   12px;
   }}
   html {{ scroll-behavior: smooth; }}
@@ -842,7 +914,7 @@ def generate_html(stats: dict) -> str:
 
   /* ── Header ── */
   .hero {{
-    background: linear-gradient(160deg, #111116 0%, #0c0c0e 60%, #0a120a 100%);
+    background: linear-gradient(160deg, #e4e9f2 0%, #eef1f6 60%, #e8ecf4 100%);
     border-bottom: 1px solid var(--border);
     padding: 40px 24px 32px;
     position: relative;
@@ -900,7 +972,7 @@ def generate_html(stats: dict) -> str:
     margin-top: 12px;
   }}
   .hero-pill {{
-    background: rgba(255,255,255,0.05);
+    background: rgba(0,0,0,0.04);
     border: 1px solid var(--border);
     border-radius: 99px;
     padding: 4px 14px;
@@ -908,8 +980,8 @@ def generate_html(stats: dict) -> str:
     color: var(--muted);
     text-decoration: none;
   }}
-  .hero-pill--link {{ color: var(--blue); border-color: rgba(74,122,232,0.3); }}
-  .hero-pill--link:hover {{ background: rgba(74,122,232,0.1); }}
+  .hero-pill--link {{ color: var(--blue); border-color: rgba(45,99,216,0.3); }}
+  .hero-pill--link:hover {{ background: rgba(45,99,216,0.1); }}
   .hero-joined {{
     font-size: 0.82rem;
     color: var(--dim);
@@ -940,7 +1012,7 @@ def generate_html(stats: dict) -> str:
     flex: 1;
     border-radius: 6px;
     overflow: hidden;
-    background: rgba(255,255,255,0.04);
+    background: rgba(0,0,0,0.04);
     border: 1px solid var(--border);
     display: flex;
     flex-direction: column;
@@ -977,7 +1049,7 @@ def generate_html(stats: dict) -> str:
     display: flex;
     align-items: center;
     gap: 16px;
-    background: rgba(255,255,255,0.03);
+    background: rgba(0,0,0,0.03);
     border: 1px solid var(--border);
     border-radius: 10px;
     padding: 16px 20px;
@@ -1037,13 +1109,13 @@ def generate_html(stats: dict) -> str:
     font-size: 0.78rem;
     font-weight: 600;
   }}
-  .badge--green {{ background: rgba(0,192,48,0.15); color: var(--accent); border: 1px solid rgba(0,192,48,0.3); }}
-  .badge--dim   {{ background: rgba(255,255,255,0.05); color: var(--muted); border: 1px solid var(--border); }}
+  .badge--green {{ background: rgba(45,99,216,0.12); color: var(--accent); border: 1px solid rgba(45,99,216,0.3); }}
+  .badge--dim   {{ background: rgba(0,0,0,0.05); color: var(--muted); border: 1px solid var(--border); }}
 
   /* ── Layout ── */
   .container {{ max-width: 1200px; margin: 0 auto; padding: 0 20px; }}
-  .grid-2 {{ display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }}
-  .grid-3 {{ display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 20px; }}
+  .grid-2 {{ display: grid; grid-template-columns: 1fr 1fr; gap: 20px; align-items: start; }}
+  .grid-3 {{ display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 20px; align-items: start; }}
   @media (max-width: 768px) {{
     .grid-2, .grid-3 {{ grid-template-columns: 1fr; }}
   }}
@@ -1051,10 +1123,9 @@ def generate_html(stats: dict) -> str:
   /* ── Overview stat cards ── */
   .stat-grid {{
     display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(130px, 160px));
+    grid-template-columns: repeat(auto-fit, minmax(130px, 1fr));
     gap: 14px;
     margin-top: 30px;
-    justify-content: center;
   }}
   .stat-card {{
     background: var(--card);
@@ -1118,11 +1189,11 @@ def generate_html(stats: dict) -> str:
   }}
   .data-table td {{
     padding: 8px 10px;
-    border-bottom: 1px solid #1e1e20;
+    border-bottom: 1px solid #e8ebf0;
     vertical-align: middle;
   }}
   .data-table tr:last-child td {{ border-bottom: none; }}
-  .data-table tr:hover td {{ background: rgba(255,255,255,0.02); }}
+  .data-table tr:hover td {{ background: rgba(45,99,216,0.04); }}
   .data-table .rank      {{ color: var(--dim); font-size: 0.8rem; width: 32px; }}
   .data-table .film-name {{ color: var(--text); font-weight: 500; }}
   .data-table .film-year {{ color: var(--muted); font-size: 0.82rem; width: 50px; }}
@@ -1146,7 +1217,7 @@ def generate_html(stats: dict) -> str:
     margin-top: 4px;
   }}
   .actor-chip {{
-    background: #1e1e22;
+    background: #f2f5fa;
     border: 1px solid var(--border);
     border-radius: 8px;
     padding: 8px 14px;
@@ -1158,7 +1229,7 @@ def generate_html(stats: dict) -> str:
   .actor-chip:hover {{ border-color: var(--blue); }}
   .actor-name  {{ color: var(--text); font-weight: 500; font-size: 0.9rem; }}
   .actor-count {{
-    background: rgba(74,122,232,0.2);
+    background: rgba(45,99,216,0.12);
     color: var(--blue);
     font-size: 0.72rem;
     font-weight: 700;
@@ -1173,18 +1244,18 @@ def generate_html(stats: dict) -> str:
     align-items: center;
     justify-content: space-between;
     padding: 8px 12px;
-    background: #1a1a1e;
+    background: #f2f5fa;
     border-radius: 8px;
     border: 1px solid var(--border);
   }}
   .rewatch-badge {{
-    background: rgba(232,192,74,0.15);
-    color: var(--gold);
+    background: rgba(45,99,216,0.1);
+    color: var(--blue);
     font-size: 0.78rem;
     font-weight: 700;
     padding: 2px 9px;
     border-radius: 99px;
-    border: 1px solid rgba(232,192,74,0.3);
+    border: 1px solid rgba(45,99,216,0.25);
     white-space: nowrap;
   }}
 
@@ -1197,7 +1268,7 @@ def generate_html(stats: dict) -> str:
     padding-top: 4px;
   }}
   .tag-chip {{
-    background: #1e1e22;
+    background: #f2f5fa;
     border: 1px solid var(--border);
     border-radius: 6px;
     padding: 4px 10px;
@@ -1205,7 +1276,7 @@ def generate_html(stats: dict) -> str:
     cursor: default;
     transition: border-color .15s, color .15s;
   }}
-  .tag-chip:hover {{ border-color: var(--gold); color: var(--gold); }}
+  .tag-chip:hover {{ border-color: var(--blue); color: var(--blue); }}
   .tag-chip sup {{ color: var(--muted); font-size: 0.65em; }}
 
   /* ── Liked films ── */
@@ -1219,7 +1290,7 @@ def generate_html(stats: dict) -> str:
     align-items: center;
     gap: 8px;
     padding: 8px 12px;
-    background: #1a1a1e;
+    background: #f2f5fa;
     border-radius: 8px;
     border: 1px solid var(--border);
     overflow: hidden;
@@ -1231,7 +1302,7 @@ def generate_html(stats: dict) -> str:
   /* ── Runtime ── */
   .runtime-stats {{ display: flex; gap: 20px; flex-wrap: wrap; }}
   .runtime-card {{
-    background: #1a1a1e;
+    background: #f2f5fa;
     border: 1px solid var(--border);
     border-radius: var(--radius);
     padding: 20px 28px;
@@ -1277,7 +1348,7 @@ def generate_html(stats: dict) -> str:
   .gender-row    {{ display: flex; align-items: center; gap: 8px; font-size: 0.85rem; }}
   .gender-dot    {{ width: 10px; height: 10px; border-radius: 50%; flex-shrink: 0; }}
   .gender-label  {{ color: var(--text); width: 90px; flex-shrink: 0; }}
-  .gender-bar-bg {{ flex: 1; background: #222; border-radius: 4px; height: 8px; overflow: hidden; }}
+  .gender-bar-bg {{ flex: 1; background: #dde2ec; border-radius: 4px; height: 8px; overflow: hidden; }}
   .gender-bar-fill {{ height: 100%; border-radius: 4px; transition: width .6s; }}
   .gender-pct    {{ color: var(--text); font-weight: 700; width: 42px; text-align: right; font-size: 0.82rem; }}
   .gender-count  {{ color: var(--dim); font-size: 0.78rem; width: 40px; }}
@@ -1314,7 +1385,7 @@ def generate_html(stats: dict) -> str:
     align-items: center;
     justify-content: space-between;
     padding: 7px 12px;
-    background: #1a1a1e;
+    background: #f2f5fa;
     border-radius: 8px;
     border: 1px solid var(--border);
     gap: 10px;
@@ -1326,10 +1397,26 @@ def generate_html(stats: dict) -> str:
   /* ── Popularity table ── */
   .pop-table    {{ margin-top: 8px; }}
   .pop-cell     {{ min-width: 120px; }}
-  .pop-bar-bg   {{ background: #222; border-radius: 4px; height: 6px; overflow: hidden; margin-bottom: 2px; }}
+  .pop-bar-bg   {{ background: #dde2ec; border-radius: 4px; height: 6px; overflow: hidden; margin-bottom: 2px; }}
   .pop-bar-fill {{ height: 100%; border-radius: 4px; }}
   .pop-score    {{ color: var(--muted); font-size: 0.72rem; }}
   .votes-dim    {{ color: var(--dim); font-size: 0.78rem; }}
+
+  /* ── Favorite years ── */
+  .fav-years-layout {{
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 24px;
+  }}
+  @media (max-width: 600px) {{ .fav-years-layout {{ grid-template-columns: 1fr; }} }}
+  .fav-years-half {{ display: flex; flex-direction: column; gap: 8px; }}
+  .fav-years-subtitle {{
+    font-size: 0.78rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: .6px;
+    color: var(--muted);
+  }}
 
   /* ── Misc ── */
   .no-data {{
@@ -1407,6 +1494,11 @@ def generate_html(stats: dict) -> str:
   <div class="grid-2">
     {_section("Rating Distribution", "⭐", ratings_html)}
     {_section("Films Watched per Year", "📅", year_html)}
+  </div>
+
+  <!-- Favorite Years -->
+  <div>
+    {_section("Favorite Years", "🏆", fav_years_html)}
   </div>
 
   <!-- Decades | Monthly patterns -->
