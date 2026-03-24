@@ -13,6 +13,7 @@ import re
 import threading
 import time
 import warnings
+import zipfile
 from collections import Counter
 from collections import deque
 from concurrent.futures import ThreadPoolExecutor, as_completed
@@ -22,9 +23,9 @@ import pandas as pd
 import requests
 
 # ── Paths ───────────────────────────────────────────────────────────────────────
-DATA_DIR   = Path(__file__).parent / "data"
-CACHE_FILE = DATA_DIR / "cache" / "tmdb_cache.json"
-TMDB_BASE  = "https://api.themoviedb.org/3"
+_SCRIPT_DIR = Path(__file__).parent
+CACHE_FILE  = _SCRIPT_DIR / "cache" / "tmdb_cache.json"
+TMDB_BASE   = "https://api.themoviedb.org/3"
 
 
 # ── TMDB key resolution ─────────────────────────────────────────────────────────
@@ -395,17 +396,28 @@ def get_hero_data(data: dict) -> dict:
 
 # ── Raw CSV loaders ─────────────────────────────────────────────────────────────
 
-def load_data() -> dict[str, pd.DataFrame]:
-    """Load all relevant Letterboxd CSV exports (ignores lists/ and deleted/)."""
-    return {
-        "watched":     pd.read_csv(DATA_DIR / "watched.csv"),
-        "ratings":     pd.read_csv(DATA_DIR / "ratings.csv"),
-        "diary":       pd.read_csv(DATA_DIR / "diary.csv"),
-        "reviews":     pd.read_csv(DATA_DIR / "reviews.csv"),
-        "watchlist":   pd.read_csv(DATA_DIR / "watchlist.csv"),
-        "liked_films": pd.read_csv(DATA_DIR / "likes" / "films.csv"),
-        "profile":     pd.read_csv(DATA_DIR / "profile.csv"),
-    }
+def load_data(zip_path: str | Path) -> dict[str, pd.DataFrame]:
+    """Load all relevant Letterboxd CSV exports from a zip file.
+
+    TMDB cache is stored in ``cache/tmdb_cache.json`` next to this script,
+    shared across all zip exports.
+    """
+    zip_path = Path(zip_path)
+
+    with zipfile.ZipFile(zip_path) as zf:
+        def _read(member: str) -> pd.DataFrame:
+            with zf.open(member) as f:
+                return pd.read_csv(f)
+
+        return {
+            "watched":     _read("watched.csv"),
+            "ratings":     _read("ratings.csv"),
+            "diary":       _read("diary.csv"),
+            "reviews":     _read("reviews.csv"),
+            "watchlist":   _read("watchlist.csv"),
+            "liked_films": _read("likes/films.csv"),
+            "profile":     _read("profile.csv"),
+        }
 
 
 # ── Individual stat functions ───────────────────────────────────────────────────
@@ -922,7 +934,15 @@ def get_all_stats(data: dict) -> dict:
 
 if __name__ == "__main__":
     import sys
-    data  = load_data()
+    if len(sys.argv) < 2:
+        candidates = sorted(_SCRIPT_DIR.glob("*.zip"))
+        if not candidates:
+            print("Usage: python analyzer.py <export.zip>", file=sys.stderr)
+            sys.exit(1)
+        _zip = candidates[0]
+    else:
+        _zip = Path(sys.argv[1])
+    data  = load_data(_zip)
     stats = get_all_stats(data)
     out   = Path("stats.json")
     out.write_text(json.dumps(stats, indent=2, default=str), encoding="utf-8")

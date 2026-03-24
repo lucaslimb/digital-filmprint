@@ -6,6 +6,7 @@ Generates a self-contained HTML file from Letterboxd CSV data.
 
 import json
 import re
+import sys
 from datetime import datetime
 from pathlib import Path
 
@@ -16,9 +17,19 @@ OUTPUT_FILE = Path(__file__).parent / "report.html"
 
 # ── Entry point ────────────────────────────────────────────────────────────────
 
-def generate_report() -> None:
-    print("Loading data...")
-    data = load_data()
+def generate_report(zip_path: str | Path | None = None) -> None:
+    if zip_path is None:
+        if len(sys.argv) > 1:
+            zip_path = Path(sys.argv[1])
+        else:
+            candidates = sorted(Path(__file__).parent.glob("*.zip"))
+            if not candidates:
+                print("Error: no .zip file provided and none found in the project root.", file=sys.stderr)
+                sys.exit(1)
+            zip_path = candidates[0]
+    zip_path = Path(zip_path)
+    print(f"Loading data from {zip_path.name}...")
+    data = load_data(zip_path)
     print("Running analysis...")
     stats = get_all_stats(data)
     print("Building HTML...")

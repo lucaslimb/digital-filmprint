@@ -568,20 +568,20 @@
       <p class="hero-bio">🌀There is a fifth dimension beyond that which is known to man...🌀</p>
       <div class="hero-pills"><span class="hero-pill">He / his</span></div>
       <p class="hero-joined">Member since <strong>2022-07-31</strong></p>
-      <div class="hero-badges"><span class="badge badge--green">TMDB enriched</span></div>
+      <div class="hero-badges"><span class="badge badge--dim">Set TMDB_API_KEY for full stats</span></div>
     </div>
     <!-- Top-right: 4 favourite film posters -->
     <div class="hero-favs">
       <h3 class="hero-cell-title">Favorite Films</h3>
-      <div class="hero-poster-row"><div class="hero-poster"><img src="https://image.tmdb.org/t/p/w300/qRzRKMjxWx1ogpGy77mTCjU4bRt.jpg" alt="World on a Wire" loading="lazy"><span class="hero-poster-label">World on a Wire (1973)</span></div><div class="hero-poster"><img src="https://image.tmdb.org/t/p/w300/znfLskGQnXYB2xcOGM9eInRHPAV.jpg" alt="Barry Lyndon" loading="lazy"><span class="hero-poster-label">Barry Lyndon (1975)</span></div><div class="hero-poster"><img src="https://image.tmdb.org/t/p/w300/43LZYSBRMZoi9QdYntkGXhLSMeI.jpg" alt="Kuroneko" loading="lazy"><span class="hero-poster-label">Kuroneko (1968)</span></div><div class="hero-poster"><img src="https://image.tmdb.org/t/p/w300/1O8ZQ9tCIdpT1dAMvwWX9hToW2H.jpg" alt="All the Colours of the Dark" loading="lazy"><span class="hero-poster-label">All the Colours of the Dark (1972)</span></div></div>
+      <div class="hero-poster-row"><div class="hero-poster hero-poster--empty"><span class="hero-poster-label">World on a Wire (1973)</span></div><div class="hero-poster hero-poster--empty"><span class="hero-poster-label">Barry Lyndon (1975)</span></div><div class="hero-poster hero-poster--empty"><span class="hero-poster-label">Kuroneko (1968)</span></div><div class="hero-poster hero-poster--empty"><span class="hero-poster-label">All the Colours of the Dark (1972)</span></div></div>
     </div>
     <!-- Bottom-left: favourite director -->
     <div class="hero-cell">
-      <div class="hero-person"><img src="https://image.tmdb.org/t/p/w185/108fiNM6poRieMg7RIqLJRxdAwG.jpg" alt="Alfred Hitchcock" loading="lazy"><div class="hero-person-info"><span class="hero-person-role">Favorite Director</span><span class="hero-person-name">Alfred Hitchcock</span><span class="hero-person-count">24 films</span></div></div>
+      <div class="hero-person"><p class="hero-person-empty">Favorite Director data unavailable</p></div>
     </div>
     <!-- Bottom-right: favourite actor -->
     <div class="hero-cell">
-      <div class="hero-person"><img src="https://image.tmdb.org/t/p/w185/ui8e4sgZAwMPi3hzEO53jyBJF9B.jpg" alt="Willem Dafoe" loading="lazy"><div class="hero-person-info"><span class="hero-person-role">Favorite Actor</span><span class="hero-person-name">Willem Dafoe</span><span class="hero-person-count">13 films</span></div></div>
+      <div class="hero-person"><p class="hero-person-empty">Favorite Actor data unavailable</p></div>
     </div>
   </div>
 </header>
@@ -751,55 +751,12 @@
     
     <section class="card ">
         <h2 class="section-title"><span class="icon">⏳</span>Film Length Categories</h2>
-        
-    <div class="lengths-layout">
-        <div class="chart-wrap chart-wrap--square">
-            <canvas id="chartLengths"></canvas>
-        </div>
-        <div class="len-legend"><div class="len-item"><span class="len-dot" style="background:#4ac8e8"></span><span class="len-label">Short (< 60 min)</span><span class="len-val">17 <span class="len-pct">(3%)</span></span></div><div class="len-item"><span class="len-dot" style="background:#00c030"></span><span class="len-label">Medium (60-120 min)</span><span class="len-val">357 <span class="len-pct">(63%)</span></span></div><div class="len-item"><span class="len-dot" style="background:#e8c04a"></span><span class="len-label">Long (> 120 min)</span><span class="len-val">190 <span class="len-pct">(34%)</span></span></div></div>
-    </div>
-    <script>
-    new Chart(document.getElementById('chartLengths'), {
-        type: 'doughnut',
-        data: {
-            labels: ["Short (< 60 min)", "Medium (60-120 min)", "Long (> 120 min)"],
-            datasets: [{
-                data: [17, 357, 190],
-                backgroundColor: ["#4ac8e8", "#00c030", "#e8c04a"],
-                borderColor: '#161618',
-                borderWidth: 3,
-            }]
-        },
-        options: {
-            responsive: true,
-            cutout: '65%',
-            plugins: {
-                legend: { display: false },
-                tooltip: {
-                    callbacks: {
-                        label: ctx => ` ${ctx.parsed} films (${Math.round(ctx.parsed / 564 * 100)}%)`
-                    }
-                }
-            }
-        }
-    });
-    </script>
+        <p class="no-data">No data — set TMDB_API_KEY to enable this section.</p>
     </section>
     
     <section class="card ">
         <h2 class="section-title"><span class="icon">⏱</span>Screen Time</h2>
-        
-    <div class="runtime-stats">
-        <div class="runtime-card">
-            <span class="runtime-value">1063.5h</span>
-            <span class="runtime-label">Total screen time</span>
-            <span class="runtime-sub">≈ 44.3 full days</span>
-        </div>
-        <div class="runtime-card">
-            <span class="runtime-value">113.1m</span>
-            <span class="runtime-label">Avg film length</span>
-        </div>
-    </div>
+        <p class="no-data">Runtime data unavailable — set TMDB_API_KEY to enable this section.</p>
     </section>
   </div>
 
@@ -808,39 +765,7 @@
     
     <section class="card ">
         <h2 class="section-title"><span class="icon">🍿</span>Favorite Genres</h2>
-        
-    <div class="genres-layout">
-        <div class="chart-wrap chart-wrap--square">
-            <canvas id="chartGenres"></canvas>
-        </div>
-        <table class="data-table">
-            <thead><tr><th>Genre</th><th>Films</th><th>Avg ★</th></tr></thead>
-            <tbody><tr><td>Drama</td><td class="num">252</td><td class="num rating-val">3.85★</td></tr><tr><td>Thriller</td><td class="num">205</td><td class="num rating-val">3.78★</td></tr><tr><td>Horror</td><td class="num">185</td><td class="num rating-val">3.64★</td></tr><tr><td>Mystery</td><td class="num">132</td><td class="num rating-val">3.84★</td></tr><tr><td>Crime</td><td class="num">95</td><td class="num rating-val">3.82★</td></tr><tr><td>Comedy</td><td class="num">92</td><td class="num rating-val">3.69★</td></tr><tr><td>Science Fiction</td><td class="num">90</td><td class="num rating-val">3.45★</td></tr><tr><td>Adventure</td><td class="num">62</td><td class="num rating-val">3.62★</td></tr><tr><td>Action</td><td class="num">60</td><td class="num rating-val">3.59★</td></tr><tr><td>Fantasy</td><td class="num">60</td><td class="num rating-val">3.76★</td></tr></tbody>
-        </table>
-    </div>
-    <script>
-    new Chart(document.getElementById('chartGenres'), {
-        type: 'doughnut',
-        data: {
-            labels: ["Drama", "Thriller", "Horror", "Mystery", "Crime", "Comedy", "Science Fiction", "Adventure", "Action", "Fantasy"],
-            datasets: [{
-                data: [252, 205, 185, 132, 95, 92, 90, 62, 60, 60],
-                backgroundColor: ["#e8c04a", "#00c030", "#4a7ae8", "#e85a4a", "#c04ae8", "#4ac8e8", "#e8944a", "#4ae87a", "#a0e84a", "#e86c4a"],
-                borderColor: '#161618',
-                borderWidth: 2,
-            }]
-        },
-        options: {
-            responsive: true,
-            plugins: {
-                legend: {
-                    position: 'bottom',
-                    labels: { color: '#ccc', padding: 14, boxWidth: 12 }
-                }
-            }
-        }
-    });
-    </script>
+        <p class="no-data">No data — set TMDB_API_KEY to enable this section.</p>
     </section>
   </div>
 
@@ -849,35 +774,7 @@
     
     <section class="card ">
         <h2 class="section-title"><span class="icon">🌍</span>Production Countries</h2>
-        
-    <div class="chart-wrap chart-wrap--tall">
-        <canvas id="chartCountries"></canvas>
-    </div>
-    <script>
-    new Chart(document.getElementById('chartCountries'), {
-        type: 'bar',
-        data: {
-            labels: ["United States of America", "United Kingdom", "France", "Germany", "Brazil", "Italy", "Japan", "Canada", "South Korea", "Spain", "Sweden", "New Zealand", "Ireland", "Poland", "Denmark"],
-            datasets: [{
-                label: 'Films',
-                data: [352, 85, 60, 45, 41, 38, 34, 23, 14, 14, 12, 10, 8, 8, 7],
-                backgroundColor: 'rgba(74,200,232,0.8)',
-                borderColor:     'rgba(74,200,232,1)',
-                borderWidth: 1,
-                borderRadius: 4,
-            }]
-        },
-        options: {
-            indexAxis: 'y',
-            responsive: true,
-            plugins: { legend: { display: false } },
-            scales: {
-                x: { beginAtZero: true, ticks: { color: '#888', stepSize: 1 }, grid: { color: '#252525' } },
-                y: { ticks: { color: '#ddd' }, grid: { display: false } }
-            }
-        }
-    });
-    </script>
+        <p class="no-data">No data — set TMDB_API_KEY to enable this section.</p>
     </section>
   </div>
 
@@ -886,17 +783,7 @@
     
     <section class="card ">
         <h2 class="section-title"><span class="icon">🔍</span>Obscure Picks — Films You've Watched</h2>
-        
-    <p class="section-sub">Sorted by TMDB popularity <strong>ascending</strong> — the most obscure films you've watched.</p>
-    <table class="data-table pop-table">
-        <thead>
-            <tr>
-                <th>#</th><th>Film</th><th>Year</th>
-                <th>Popularity</th><th>TMDB Avg</th><th>Stars</th><th>Your ★</th>
-            </tr>
-        </thead>
-        <tbody><tr><td class="rank">#1</td><td class="film-name">River</td><td class="film-year">2023</td><td class="pop-cell"><div class="pop-bar-bg"><div class="pop-bar-fill" style="width:51%;background:hsl(65,80%,45%)"></div></div>  <span class="pop-score">0.2</span></td><td class="num">—</td><td class="stars">★★★½☆</td><td class="num">3.5</td></tr><tr><td class="rank">#2</td><td class="film-name">The Happiest Guy in the World</td><td class="film-year">2018</td><td class="pop-cell"><div class="pop-bar-bg"><div class="pop-bar-fill" style="width:56%;background:hsl(68,80%,45%)"></div></div>  <span class="pop-score">0.22</span></td><td class="num">4.0★</td><td class="stars"></td><td class="num">—</td></tr><tr><td class="rank">#3</td><td class="film-name">Strange Encounter</td><td class="film-year">1958</td><td class="pop-cell"><div class="pop-bar-bg"><div class="pop-bar-fill" style="width:56%;background:hsl(68,80%,45%)"></div></div>  <span class="pop-score">0.22</span></td><td class="num">7.5★</td><td class="stars">★★★★☆</td><td class="num">4.0</td></tr><tr><td class="rank">#4</td><td class="film-name">Seduce Me</td><td class="film-year">2010</td><td class="pop-cell"><div class="pop-bar-bg"><div class="pop-bar-fill" style="width:62%;background:hsl(70,80%,45%)"></div></div>  <span class="pop-score">0.24</span></td><td class="num">6.5★</td><td class="stars"></td><td class="num">—</td></tr><tr><td class="rank">#5</td><td class="film-name">Daughters of Fire</td><td class="film-year">1978</td><td class="pop-cell"><div class="pop-bar-bg"><div class="pop-bar-fill" style="width:64%;background:hsl(72,80%,45%)"></div></div>  <span class="pop-score">0.25</span></td><td class="num">6.1★</td><td class="stars">★★★½☆</td><td class="num">3.5</td></tr><tr><td class="rank">#6</td><td class="film-name">Love & Saucers</td><td class="film-year">2017</td><td class="pop-cell"><div class="pop-bar-bg"><div class="pop-bar-fill" style="width:72%;background:hsl(75,80%,45%)"></div></div>  <span class="pop-score">0.28</span></td><td class="num">—</td><td class="stars">★★★★☆</td><td class="num">4.0</td></tr><tr><td class="rank">#7</td><td class="film-name">Porta dos Fundos: Contrato Vitalício</td><td class="film-year">2016</td><td class="pop-cell"><div class="pop-bar-bg"><div class="pop-bar-fill" style="width:74%;background:hsl(77,80%,45%)"></div></div>  <span class="pop-score">0.29</span></td><td class="num">4.2★</td><td class="stars">★★½☆☆</td><td class="num">2.5</td></tr><tr><td class="rank">#8</td><td class="film-name">Loved and Abused</td><td class="film-year">1976</td><td class="pop-cell"><div class="pop-bar-bg"><div class="pop-bar-fill" style="width:74%;background:hsl(77,80%,45%)"></div></div>  <span class="pop-score">0.29</span></td><td class="num">3.4★</td><td class="stars">★★★½☆</td><td class="num">3.5</td></tr><tr><td class="rank">#9</td><td class="film-name">The Sign of Scorpio</td><td class="film-year">1974</td><td class="pop-cell"><div class="pop-bar-bg"><div class="pop-bar-fill" style="width:77%;background:hsl(78,80%,45%)"></div></div>  <span class="pop-score">0.3</span></td><td class="num">5.1★</td><td class="stars">★★★½☆</td><td class="num">3.5</td></tr><tr><td class="rank">#10</td><td class="film-name">O Fabuloso Fittipaldi</td><td class="film-year">1973</td><td class="pop-cell"><div class="pop-bar-bg"><div class="pop-bar-fill" style="width:79%;background:hsl(79,80%,45%)"></div></div>  <span class="pop-score">0.31</span></td><td class="num">—</td><td class="stars">★★★½☆</td><td class="num">3.5</td></tr><tr><td class="rank">#11</td><td class="film-name">Enigma for Demons</td><td class="film-year">1975</td><td class="pop-cell"><div class="pop-bar-bg"><div class="pop-bar-fill" style="width:82%;background:hsl(81,80%,45%)"></div></div>  <span class="pop-score">0.32</span></td><td class="num">5.5★</td><td class="stars">★★★★☆</td><td class="num">4.0</td></tr><tr><td class="rank">#12</td><td class="film-name">Burning</td><td class="film-year">2018</td><td class="pop-cell"><div class="pop-bar-bg"><div class="pop-bar-fill" style="width:85%;background:hsl(82,80%,45%)"></div></div>  <span class="pop-score">0.33</span></td><td class="num">6.4★</td><td class="stars">★★★☆☆</td><td class="num">3.0</td></tr><tr><td class="rank">#13</td><td class="film-name">The Strange World of Coffin Joe</td><td class="film-year">1968</td><td class="pop-cell"><div class="pop-bar-bg"><div class="pop-bar-fill" style="width:85%;background:hsl(82,80%,45%)"></div></div>  <span class="pop-score">0.33</span></td><td class="num">5.4★</td><td class="stars">★★★½☆</td><td class="num">3.5</td></tr><tr><td class="rank">#14</td><td class="film-name">King of the Night</td><td class="film-year">1975</td><td class="pop-cell"><div class="pop-bar-bg"><div class="pop-bar-fill" style="width:85%;background:hsl(82,80%,45%)"></div></div>  <span class="pop-score">0.33</span></td><td class="num">6.1★</td><td class="stars">★★★½☆</td><td class="num">3.5</td></tr><tr><td class="rank">#15</td><td class="film-name">Road to Crime</td><td class="film-year">1954</td><td class="pop-cell"><div class="pop-bar-bg"><div class="pop-bar-fill" style="width:87%;background:hsl(83,80%,45%)"></div></div>  <span class="pop-score">0.34</span></td><td class="num">6.0★</td><td class="stars">★★★★☆</td><td class="num">4.0</td></tr><tr><td class="rank">#16</td><td class="film-name">Charcoal</td><td class="film-year">2022</td><td class="pop-cell"><div class="pop-bar-bg"><div class="pop-bar-fill" style="width:92%;background:hsl(86,80%,45%)"></div></div>  <span class="pop-score">0.36</span></td><td class="num">4.0★</td><td class="stars">★★★★☆</td><td class="num">4.0</td></tr><tr><td class="rank">#17</td><td class="film-name">Resurrection</td><td class="film-year">2025</td><td class="pop-cell"><div class="pop-bar-bg"><div class="pop-bar-fill" style="width:92%;background:hsl(86,80%,45%)"></div></div>  <span class="pop-score">0.36</span></td><td class="num">—</td><td class="stars">★★★½☆</td><td class="num">3.5</td></tr><tr><td class="rank">#18</td><td class="film-name">Hellish Flesh</td><td class="film-year">1977</td><td class="pop-cell"><div class="pop-bar-bg"><div class="pop-bar-fill" style="width:97%;background:hsl(88,80%,45%)"></div></div>  <span class="pop-score">0.38</span></td><td class="num">4.5★</td><td class="stars">★★★½☆</td><td class="num">3.5</td></tr><tr><td class="rank">#19</td><td class="film-name">Angel of the Night</td><td class="film-year">1974</td><td class="pop-cell"><div class="pop-bar-bg"><div class="pop-bar-fill" style="width:100%;background:hsl(90,80%,45%)"></div></div>  <span class="pop-score">0.39</span></td><td class="num">5.5★</td><td class="stars">★★★½☆</td><td class="num">3.5</td></tr><tr><td class="rank">#20</td><td class="film-name">The Tell-Tale Heart</td><td class="film-year">2008</td><td class="pop-cell"><div class="pop-bar-bg"><div class="pop-bar-fill" style="width:100%;background:hsl(90,80%,45%)"></div></div>  <span class="pop-score">0.39</span></td><td class="num">6.5★</td><td class="stars"></td><td class="num">—</td></tr></tbody>
-    </table>
+        <p class="no-data">No data — set TMDB_API_KEY to enable this section.</p>
     </section>
   </div>
 
@@ -978,45 +865,12 @@
     
     <section class="card ">
         <h2 class="section-title"><span class="icon">🎬</span>Most Watched Directors</h2>
-        
-    <div class="chart-wrap chart-wrap--tall">
-        <canvas id="chartDirectors"></canvas>
-    </div>
-    <script>
-    new Chart(document.getElementById('chartDirectors'), {
-        type: 'bar',
-        data: {
-            labels: ["Alfred Hitchcock", "Stanley Kubrick", "Paul Thomas Anderson", "Mario Bava", "Martin Scorsese", "Kiyoshi Kurosawa", "David Lynch", "Denis Villeneuve", "Roman Polanski", "David Fincher", "Quentin Tarantino", "Steven Spielberg"],
-            datasets: [{
-                label: 'Films watched',
-                data: [24, 12, 10, 10, 8, 8, 8, 7, 7, 7, 7, 7],
-                backgroundColor: 'rgba(74,160,232,0.8)',
-                borderColor:     'rgba(74,160,232,1)',
-                borderWidth: 1,
-                borderRadius: 4,
-            }]
-        },
-        options: {
-            indexAxis: 'y',
-            responsive: true,
-            plugins: { legend: { display: false } },
-            scales: {
-                x: { beginAtZero: true, ticks: { color: '#888', stepSize: 1 }, grid: { color: '#252525' } },
-                y: { ticks: { color: '#ddd' }, grid: { display: false } }
-            }
-        }
-    });
-    </script>
+        <p class="no-data">No data — set TMDB_API_KEY to enable this section.</p>
     </section>
     
     <section class="card ">
         <h2 class="section-title"><span class="icon">🏆</span>Top Rated Directors</h2>
-        
-    <p class="section-sub">Ranked by your average rating (min. 2 films watched). TMDB-powered.</p>
-    <table class="data-table">
-        <thead><tr><th>#</th><th>Director</th><th>Films</th><th>Rated</th><th>Avg ★</th></tr></thead>
-        <tbody><tr><td class="rank">#1</td><td class="film-name">Miloš Forman</td><td class="num">2</td><td class="num">2</td><td class="num rating-val">5.0★</td></tr><tr><td class="rank">#2</td><td class="film-name">Bong Joon Ho</td><td class="num">2</td><td class="num">2</td><td class="num rating-val">4.75★</td></tr><tr><td class="rank">#3</td><td class="film-name">Robert Eggers</td><td class="num">5</td><td class="num">4</td><td class="num rating-val">4.5★</td></tr><tr><td class="rank">#4</td><td class="film-name">Taika Waititi</td><td class="num">2</td><td class="num">2</td><td class="num rating-val">4.5★</td></tr><tr><td class="rank">#5</td><td class="film-name">Kaneto Shindō</td><td class="num">2</td><td class="num">2</td><td class="num rating-val">4.5★</td></tr><tr><td class="rank">#6</td><td class="film-name">Jacques Tati</td><td class="num">3</td><td class="num">3</td><td class="num rating-val">4.33★</td></tr><tr><td class="rank">#7</td><td class="film-name">Stanley Kubrick</td><td class="num">12</td><td class="num">12</td><td class="num rating-val">4.25★</td></tr><tr><td class="rank">#8</td><td class="film-name">Peter Jackson</td><td class="num">6</td><td class="num">6</td><td class="num rating-val">4.25★</td></tr><tr><td class="rank">#9</td><td class="film-name">Wim Wenders</td><td class="num">4</td><td class="num">4</td><td class="num rating-val">4.25★</td></tr><tr><td class="rank">#10</td><td class="film-name">Otto Preminger</td><td class="num">4</td><td class="num">4</td><td class="num rating-val">4.25★</td></tr><tr><td class="rank">#11</td><td class="film-name">Hayao Miyazaki</td><td class="num">2</td><td class="num">2</td><td class="num rating-val">4.25★</td></tr><tr><td class="rank">#12</td><td class="film-name">Terry Jones</td><td class="num">2</td><td class="num">2</td><td class="num rating-val">4.25★</td></tr></tbody>
-    </table>
+        <p class="no-data">No data — set TMDB_API_KEY to enable this section.</p>
     </section>
   </div>
 
@@ -1025,12 +879,12 @@
     
     <section class="card ">
         <h2 class="section-title"><span class="icon">🎭</span>Favorite Actors</h2>
-        <div class="actor-grid"><div class="actor-chip"><span class="actor-name">Willem Dafoe</span><span class="actor-count">13</span></div><div class="actor-chip"><span class="actor-name">Harrison Ford</span><span class="actor-count">11</span></div><div class="actor-chip"><span class="actor-name">Robert De Niro</span><span class="actor-count">8</span></div><div class="actor-chip"><span class="actor-name">Oscar Isaac</span><span class="actor-count">8</span></div><div class="actor-chip"><span class="actor-name">Daniel Radcliffe</span><span class="actor-count">8</span></div><div class="actor-chip"><span class="actor-name">Rupert Grint</span><span class="actor-count">8</span></div><div class="actor-chip"><span class="actor-name">Emma Watson</span><span class="actor-count">8</span></div><div class="actor-chip"><span class="actor-name">Alan Rickman</span><span class="actor-count">8</span></div><div class="actor-chip"><span class="actor-name">Isabella Rossellini</span><span class="actor-count">7</span></div><div class="actor-chip"><span class="actor-name">Ralph Fiennes</span><span class="actor-count">7</span></div><div class="actor-chip"><span class="actor-name">Samuel L. Jackson</span><span class="actor-count">7</span></div><div class="actor-chip"><span class="actor-name">Leonardo DiCaprio</span><span class="actor-count">7</span></div><div class="actor-chip"><span class="actor-name">Anthony Daniels</span><span class="actor-count">7</span></div><div class="actor-chip"><span class="actor-name">Ian McKellen</span><span class="actor-count">6</span></div><div class="actor-chip"><span class="actor-name">Christopher Lee</span><span class="actor-count">6</span></div></div>
+        <p class="no-data">No data — set TMDB_API_KEY to enable this section.</p>
     </section>
     
     <section class="card ">
         <h2 class="section-title"><span class="icon">⚧</span>Gender Distribution</h2>
-        <div class="gender-layout"><div class="gender-block"><h3 class="gender-subtitle">Directors</h3><div class="gender-row"><span class="gender-dot" style="background:#e84a9a"></span><span class="gender-label">Female</span><div class="gender-bar-bg"><div class="gender-bar-fill" style="width:3.5%;background:#e84a9a"></div></div><span class="gender-pct">3.5%</span><span class="gender-count">(21)</span></div><div class="gender-row"><span class="gender-dot" style="background:#4a7ae8"></span><span class="gender-label">Male</span><div class="gender-bar-bg"><div class="gender-bar-fill" style="width:95.5%;background:#4a7ae8"></div></div><span class="gender-pct">95.5%</span><span class="gender-count">(571)</span></div><div class="gender-row"><span class="gender-dot" style="background:#888"></span><span class="gender-label">Other/N.A.</span><div class="gender-bar-bg"><div class="gender-bar-fill" style="width:1.0%;background:#888"></div></div><span class="gender-pct">1.0%</span><span class="gender-count">(6)</span></div></div><div class="gender-block"><h3 class="gender-subtitle">Cast (top 10 per film)</h3><div class="gender-row"><span class="gender-dot" style="background:#e84a9a"></span><span class="gender-label">Female</span><div class="gender-bar-bg"><div class="gender-bar-fill" style="width:31.4%;background:#e84a9a"></div></div><span class="gender-pct">31.4%</span><span class="gender-count">(1731)</span></div><div class="gender-row"><span class="gender-dot" style="background:#4a7ae8"></span><span class="gender-label">Male</span><div class="gender-bar-bg"><div class="gender-bar-fill" style="width:61.9%;background:#4a7ae8"></div></div><span class="gender-pct">61.9%</span><span class="gender-count">(3409)</span></div><div class="gender-row"><span class="gender-dot" style="background:#888"></span><span class="gender-label">Other/N.A.</span><div class="gender-bar-bg"><div class="gender-bar-fill" style="width:6.7%;background:#888"></div></div><span class="gender-pct">6.7%</span><span class="gender-count">(369)</span></div></div></div>
+        <p class="no-data">No data — set TMDB_API_KEY to enable this section.</p>
     </section>
   </div>
 

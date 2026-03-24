@@ -1491,8 +1491,17 @@ def generate_html(stats: dict) -> str:
 # ── Entry point ──────────────────────────────────────────────────────────────────
 
 def main() -> None:
-    print("Loading CSV data...")
-    data = load_data()
+    if len(sys.argv) > 1:
+        zip_path = Path(sys.argv[1])
+    else:
+        candidates = sorted(Path(__file__).parent.glob("*.zip"))
+        if not candidates:
+            print("Error: no .zip file provided and none found in the project root.", file=sys.stderr)
+            sys.exit(1)
+        zip_path = candidates[0]
+
+    print(f"Loading CSV data from {zip_path.name}...")
+    data = load_data(zip_path)
 
     print("Computing stats...")
     stats = get_all_stats(data)
