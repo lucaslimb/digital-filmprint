@@ -80,7 +80,8 @@ def _build_rating_chart(dist: dict) -> str:
         <canvas id="chartRatings"></canvas>
     </div>
     <script>
-    new Chart(document.getElementById('chartRatings'), {{
+    window.CHARTS = window.CHARTS || {{}};
+    window.CHARTS.ratings = new Chart(document.getElementById('chartRatings'), {{
         type: 'bar',
         data: {{
             labels: {_j(labels)},
@@ -117,7 +118,8 @@ def _build_year_chart(by_year: dict) -> str:
         <canvas id="chartYear"></canvas>
     </div>
     <script>
-    new Chart(document.getElementById('chartYear'), {{
+    window.CHARTS = window.CHARTS || {{}};
+    window.CHARTS.year = new Chart(document.getElementById('chartYear'), {{
         type: 'bar',
         data: {{
             labels: {_j(labels)},
@@ -156,7 +158,8 @@ def _build_decade_chart(decades: dict) -> str:
         <canvas id="chartDecade"></canvas>
     </div>
     <script>
-    new Chart(document.getElementById('chartDecade'), {{
+    window.CHARTS = window.CHARTS || {{}};
+    window.CHARTS.decade = new Chart(document.getElementById('chartDecade'), {{
         type: 'bar',
         data: {{
             labels: {_j(labels)},
@@ -191,7 +194,8 @@ def _build_month_chart(by_month: dict) -> str:
         <canvas id="chartMonth"></canvas>
     </div>
     <script>
-    new Chart(document.getElementById('chartMonth'), {{
+    window.CHARTS = window.CHARTS || {{}};
+    window.CHARTS.month = new Chart(document.getElementById('chartMonth'), {{
         type: 'bar',
         data: {{
             labels: {_j(labels)},
@@ -227,7 +231,8 @@ def _build_directors_section(directors: list) -> str:
         <canvas id="chartDirectors"></canvas>
     </div>
     <script>
-    new Chart(document.getElementById('chartDirectors'), {{
+    window.CHARTS = window.CHARTS || {{}};
+    window.CHARTS.directors = new Chart(document.getElementById('chartDirectors'), {{
         type: 'bar',
         data: {{
             labels: {_j(labels)},
@@ -273,13 +278,14 @@ def _build_genres_section(genres: list) -> str:
         <div class="chart-wrap chart-wrap--square">
             <canvas id="chartGenres"></canvas>
         </div>
-        <table class="data-table">
+        <table id="genresTable" class="data-table">
             <thead><tr><th>Genre</th><th>Films</th><th>Avg ★</th></tr></thead>
             <tbody>{rows}</tbody>
         </table>
     </div>
     <script>
-    new Chart(document.getElementById('chartGenres'), {{
+    window.CHARTS = window.CHARTS || {{}};
+    window.CHARTS.genres = new Chart(document.getElementById('chartGenres'), {{
         type: 'doughnut',
         data: {{
             labels: {_j(labels)},
@@ -398,7 +404,8 @@ def _build_reviews_chart(reviews: dict) -> str:
         <canvas id="chartReviews"></canvas>
     </div>
     <script>
-    new Chart(document.getElementById('chartReviews'), {{
+    window.CHARTS = window.CHARTS || {{}};
+    window.CHARTS.reviews = new Chart(document.getElementById('chartReviews'), {{
         type: 'bar',
         data: {{
             labels: {_j(labels)},
@@ -443,10 +450,11 @@ def _build_film_lengths_chart(lengths: dict | None) -> str:
         <div class="chart-wrap chart-wrap--square">
             <canvas id="chartLengths"></canvas>
         </div>
-        <div class="len-legend">{pct_items}</div>
+        <div id="lengthsLegend" class="len-legend">{pct_items}</div>
     </div>
     <script>
-    new Chart(document.getElementById('chartLengths'), {{
+    window.CHARTS = window.CHARTS || {{}};
+    window.CHARTS.lengths = new Chart(document.getElementById('chartLengths'), {{
         type: 'doughnut',
         data: {{
             labels: {_j(labels)},
@@ -464,7 +472,7 @@ def _build_film_lengths_chart(lengths: dict | None) -> str:
                 legend: {{ display: false }},
                 tooltip: {{
                     callbacks: {{
-                        label: ctx => ` ${{ctx.parsed}} films (${{Math.round(ctx.parsed / {total} * 100)}}%)`
+                        label: ctx => {{ const t = ctx.chart.data.datasets[0].data.reduce((a,b)=>a+b,0); return ` ${{ctx.parsed}} films (${{Math.round(ctx.parsed/t*100)}}%)`; }}
                     }}
                 }}
             }}
@@ -484,7 +492,8 @@ def _build_country_chart(countries: list | None) -> str:
         <canvas id="chartCountries"></canvas>
     </div>
     <script>
-    new Chart(document.getElementById('chartCountries'), {{
+    window.CHARTS = window.CHARTS || {{}};
+    window.CHARTS.countries = new Chart(document.getElementById('chartCountries'), {{
         type: 'bar',
         data: {{
             labels: {_j(labels)},
@@ -629,8 +638,9 @@ def _build_favorite_years_chart(fy: dict) -> str:
                 }}
             }}
         }};
-        new Chart(document.getElementById('chartFavYearsMW'), mwCfg);
-        new Chart(document.getElementById('chartFavYearsBR'), brCfg);
+        window.CHARTS = window.CHARTS || {{}};
+        window.CHARTS.fav_years_mw = new Chart(document.getElementById('chartFavYearsMW'), mwCfg);
+        window.CHARTS.fav_years_br = new Chart(document.getElementById('chartFavYearsBR'), brCfg);
     }})();
     </script>"""
 
@@ -777,6 +787,105 @@ def _build_watchlist_section(wl: dict, tmdb_on: bool) -> str:
 </section>"""
 
 
+# ── Year-filter data builder ─────────────────────────────────────────────────────
+
+def _build_year_data(all_stats: dict) -> dict:
+    """
+    Build a per-year data dict (all-time + each diary year) for embedding as
+    window.YEAR_DATA in the HTML.  Each entry has:
+      charts  – labels / values / optional colors for every Chart.js instance
+      html    – pre-rendered innerHTML strings for non-chart sections
+    """
+    _palette_decade = ["#0d2a6b","#1040a0","#1a55c0","#2d6dd8","#4287ee",
+                       "#5b9ff4","#7ab5f8","#9acbfb","#b8dffe","#d6f0ff"]
+    _palette_genre  = ["#0d2a6b","#1040a0","#1a55c0","#2d6dd8","#4287ee",
+                       "#5b9ff4","#7ab5f8","#9acbfb","#b8dffe","#d6f0ff"]
+    _len_colors     = ["#1a55c0", "#4287ee", "#9acbfb"]
+    _fav_colors     = ["#0d2a6b","#1a55c0","#2d6dd8","#4287ee","#7ab5f8"]
+
+    def _charts(s: dict) -> dict:
+        dist    = s.get("rating_distribution") or {}
+        labels_r = list(dist.keys())
+        n = len(labels_r)
+        colors_r = [
+            f'rgba({round(100 - i/max(n-1,1)*75)},{round(145 - i/max(n-1,1)*82)},{round(230 - i/max(n-1,1)*50)},0.85)'
+            for i in range(n)
+        ]
+        by_year  = s.get("activity_by_year") or {}
+        by_month = s.get("activity_by_month") or {}
+        decades  = s.get("decade_breakdown") or {}
+        dirs     = (s.get("directors") or [])[:12]
+        genres   = s.get("genres") or []
+        fy       = s.get("favorite_years") or {}
+        mw       = fy.get("most_watched", [])
+        br       = fy.get("best_rated", [])
+        reviews  = s.get("reviews_over_time") or {}
+        lengths  = s.get("film_lengths") or {}
+        countries= (s.get("countries") or [])[:15]
+        lkeys    = list(lengths.keys())
+        return {
+            "ratings":     {"labels": labels_r, "values": list(dist.values()), "colors": colors_r},
+            "year":        {"labels": [str(y) for y in by_year.keys()], "values": list(by_year.values())},
+            "month":       {"labels": list(by_month.keys()), "values": list(by_month.values())},
+            "decade":      {"labels": list(decades.keys()), "values": list(decades.values()), "colors": (_palette_decade * 4)[:len(decades)]},
+            "directors":   {"labels": [d["director"] for d in dirs], "values": [d["count"] for d in dirs]},
+            "genres":      {"labels": [g["genre"] for g in genres], "values": [g["count"] for g in genres], "colors": _palette_genre[:len(genres)]},
+            "fav_years_mw":{"labels": [str(d["year"]) for d in mw], "values": [d["count"] for d in mw], "colors": _fav_colors},
+            "fav_years_br":{"labels": [str(d["year"]) for d in br], "values": [d["avg"] for d in br], "colors": _fav_colors},
+            "reviews":     {"labels": list(reviews.keys()), "values": list(reviews.values())},
+            "lengths":     {"labels": lkeys, "values": list(lengths.values()), "colors": _len_colors[:len(lkeys)]},
+            "countries":   {"labels": [c["country"] for c in countries], "values": [c["count"] for c in countries]},
+        }
+
+    def _html_frags(s: dict) -> dict:
+        p   = s.get("profile") or {}
+        rw  = s.get("rewatch_stats") or {"total_rewatches": 0, "most_rewatched": []}
+        rt  = s.get("runtime_stats") or {"total_hours": None, "average_minutes": None}
+        genres  = s.get("genres") or []
+        lengths = s.get("film_lengths") or {}
+        lkeys   = list(lengths.keys())
+        lvals   = list(lengths.values())
+        ltotal  = sum(lvals)
+
+        len_legend = "".join(
+            f'<div class="len-item">'
+            f'<span class="len-dot" style="background:{_len_colors[i % 3]}"></span>'
+            f'<span class="len-label">{lbl}</span>'
+            f'<span class="len-val">{v} <span class="len-pct">({round(v/ltotal*100) if ltotal else 0}%)</span></span>'
+            f'</div>'
+            for i, (lbl, v) in enumerate(zip(lkeys, lvals))
+        ) if lkeys else _no_data_msg()
+
+        genres_tbody = "".join(
+            f'<tr><td>{g["genre"]}</td><td class="num">{g["count"]}</td>'
+            f'<td class="num rating-val">{g["avg_rating"] if g["avg_rating"] else "—"}{"★" if g["avg_rating"] else ""}</td></tr>'
+            for g in genres
+        )
+        genres_table_html = (
+            f'<thead><tr><th>Genre</th><th>Films</th><th>Avg ★</th></tr></thead><tbody>{genres_tbody}</tbody>'
+            if genres else '<tbody><tr><td class="no-data" colspan="3">No genre data</td></tr></tbody>'
+        )
+
+        return {
+            "overview_cards":      _build_overview_cards(p),
+            "top_rated":           _build_top_rated_table(s.get("top_rated_films") or []),
+            "rewatches":           _build_rewatch_section(rw),
+            "tags":                _build_tags_section(s.get("tag_breakdown") or {}),
+            "runtime":             _build_runtime_section(rt),
+            "actors":              _build_actors_section(s.get("actors") or []),
+            "gender":              _build_gender_section(s.get("gender_distribution")),
+            "top_rated_directors": _build_top_rated_directors_table(s.get("top_rated_directors") or []),
+            "low_pop":             _build_watched_low_popularity_table((s.get("low_popularity_watched") or [])[:10]),
+            "lengths_legend":      len_legend,
+            "genres_table":        genres_table_html,
+        }
+
+    result = {"all": {"charts": _charts(all_stats), "html": _html_frags(all_stats)}}
+    for yr_str, yr_stats in (all_stats.get("per_year_stats") or {}).items():
+        result[yr_str] = {"charts": _charts(yr_stats), "html": _html_frags(yr_stats)}
+    return result
+
+
 # ── Master HTML assembler ────────────────────────────────────────────────────────
 
 def generate_html(stats: dict) -> str:
@@ -855,29 +964,36 @@ def generate_html(stats: dict) -> str:
     director_html = _person_card(top_director, "Favorite Director")
     actor_html    = _person_card(top_actor,    "Favorite Actor")
 
-    overview_html        = _build_overview_cards(p)
+    overview_html        = f'<div id="overviewCards">{_build_overview_cards(p)}</div>'
     ratings_html         = _build_rating_chart(stats["rating_distribution"])
     year_html            = _build_year_chart(stats["activity_by_year"])
     decade_html          = _build_decade_chart(stats["decade_breakdown"])
     month_html           = _build_month_chart(stats["activity_by_month"])
     directors_html       = _build_directors_section(stats["directors"])
     genres_html          = _build_genres_section(stats["genres"])
-    actors_html          = _build_actors_section(stats["actors"])
-    top_rated_html       = _build_top_rated_table(stats["top_rated_films"][:5])
-    rewatch_html         = _build_rewatch_section(stats["rewatch_stats"])
-    tags_html            = _build_tags_section(stats["tag_breakdown"])
+    actors_html          = f'<div id="actorsContent">{_build_actors_section(stats["actors"])}</div>'
+    top_rated_html       = f'<div id="topRatedContent">{_build_top_rated_table(stats["top_rated_films"][:5])}</div>'
+    rewatch_html         = f'<div id="rewatchContent">{_build_rewatch_section(stats["rewatch_stats"])}</div>'
+    tags_html            = f'<div id="tagsContent">{_build_tags_section(stats["tag_breakdown"])}</div>'
     liked_html           = _build_liked_section(stats["liked_films"])
-    runtime_html         = _build_runtime_section(stats["runtime_stats"])
+    runtime_html         = f'<div id="runtimeContent">{_build_runtime_section(stats["runtime_stats"])}</div>'
     reviews_html         = _build_reviews_chart(stats["reviews_over_time"])
     lengths_html         = _build_film_lengths_chart(stats.get("film_lengths"))
     country_html         = _build_country_chart(stats.get("countries"))
-    gender_html          = _build_gender_section(stats.get("gender_distribution"))
+    gender_html          = f'<div id="genderContent">{_build_gender_section(stats.get("gender_distribution"))}</div>'
     cy_html              = _build_current_year_section(stats["current_year_films"])
     cy_year              = stats["current_year_films"]["year"]
     fav_years_html       = _build_favorite_years_chart(stats.get("favorite_years") or {})
-    top_rated_dirs_html  = _build_top_rated_directors_table(stats.get("top_rated_directors") or [])
-    low_pop_watched_html = _build_watched_low_popularity_table((stats.get("low_popularity_watched") or [])[:10])
+    top_rated_dirs_html  = f'<div id="topRatedDirsContent">{_build_top_rated_directors_table(stats.get("top_rated_directors") or [])}</div>'
+    low_pop_watched_html = f'<div id="lowPopContent">{_build_watched_low_popularity_table((stats.get("low_popularity_watched") or [])[:10])}</div>'
     watchlist_html       = _build_watchlist_section(stats["watchlist_analysis"], tmdb_on)
+
+    # Year filter buttons and embedded data
+    diary_years = stats.get("diary_years", [])
+    year_btns_html = '<button class="year-btn active" data-year="all" onclick="setYearFilter(\'all\',this)">All-time</button>'
+    for _yr in diary_years:
+        year_btns_html += f'<button class="year-btn" data-year="{_yr}" onclick="setYearFilter(\'{_yr}\',this)">{_yr}</button>'
+    year_data_json = _j(_build_year_data(stats))
 
     return f"""<!DOCTYPE html>
 <html lang="en">
@@ -1450,6 +1566,45 @@ def generate_html(stats: dict) -> str:
     color: var(--text);
     letter-spacing: -0.5px;
   }}
+
+  /* ── Year filter bar ── */
+  .year-filter-bar {{
+    position: sticky;
+    top: 0;
+    z-index: 100;
+    background: rgba(238,241,246,0.97);
+    backdrop-filter: blur(8px);
+    border-bottom: 1px solid var(--border);
+    padding: 9px 20px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 8px;
+    flex-wrap: wrap;
+  }}
+  .filter-label {{
+    font-size: 0.75rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: .6px;
+    color: var(--muted);
+    margin-right: 8px;
+    white-space: nowrap;
+  }}
+  .year-btn {{
+    padding: 5px 15px;
+    border: 1px solid var(--border);
+    border-radius: 99px;
+    background: var(--card);
+    color: var(--muted);
+    cursor: pointer;
+    font-size: 0.82rem;
+    font-weight: 500;
+    transition: border-color .15s, color .15s, background .15s;
+    white-space: nowrap;
+  }}
+  .year-btn:hover {{ border-color: var(--accent); color: var(--accent); }}
+  .year-btn.active {{ background: var(--accent); color: #fff; border-color: var(--accent); }}
 </style>
 </head>
 <body>
@@ -1464,7 +1619,6 @@ def generate_html(stats: dict) -> str:
       {bio_block}
       <div class="hero-pills">{meta_pills}</div>
       <p class="hero-joined">Member since <strong>{joined}</strong></p>
-      <div class="hero-badges">{tmdb_badge}</div>
     </div>
     <!-- Top-right: 4 favourite film posters -->
     <div class="hero-favs">
@@ -1482,6 +1636,11 @@ def generate_html(stats: dict) -> str:
   </div>
 </header>
 
+<!-- ── YEAR FILTER BAR ── -->
+<div class="year-filter-bar">
+  {year_btns_html}
+</div>
+
 <div class="container">
 
   <!-- ── OVERVIEW ── -->
@@ -1493,7 +1652,7 @@ def generate_html(stats: dict) -> str:
   <!-- Ratings | Activity by year -->
   <div class="grid-2">
     {_section("Rating Distribution", "⭐", ratings_html)}
-    {_section("Films Watched per Year", "📅", year_html)}
+    <div id="wrapYearActivity">{_section("Films Watched per Year", "📅", year_html)}</div>
   </div>
 
   <!-- Favorite Years -->
@@ -1575,6 +1734,84 @@ def generate_html(stats: dict) -> str:
 <footer>
   <p>Generated from your <a href="https://letterboxd.com" target="_blank">Letterboxd</a> data export.</p>
 </footer>
+
+<script>
+(function() {{
+  /* ── Embed per-year data ── */
+  window.YEAR_DATA = {year_data_json};
+  window.CHARTS    = window.CHARTS || {{}};
+
+  /* ── Helpers ── */
+  function setHTML(id, html) {{
+    const el = document.getElementById(id);
+    if (el) el.innerHTML = html;
+  }}
+
+  function updateBar(chart, data) {{
+    if (!chart || !data) return;
+    chart.data.labels = data.labels || [];
+    chart.data.datasets[0].data = data.values || [];
+    if (data.colors) chart.data.datasets[0].backgroundColor = data.colors;
+    chart.update('none');
+  }}
+
+  function updateDoughnut(chart, data) {{
+    if (!chart || !data) return;
+    chart.data.labels = data.labels || [];
+    chart.data.datasets[0].data = data.values || [];
+    if (data.colors) chart.data.datasets[0].backgroundColor = data.colors;
+    chart.update('none');
+  }}
+
+  /* ── Main filter function (exposed globally for onclick handlers) ── */
+  window.setYearFilter = function(year, btn) {{
+    /* Update button active state */
+    document.querySelectorAll('.year-btn').forEach(function(b) {{ b.classList.remove('active'); }});
+    if (btn) btn.classList.add('active');
+
+    const d = window.YEAR_DATA[year];
+    if (!d) return;
+    const c = d.charts;
+    const h = d.html;
+
+    /* Show/hide the "Films Watched per Year" card – it's trivial for a single year */
+    const wrapYear = document.getElementById('wrapYearActivity');
+    if (wrapYear) wrapYear.style.display = (year === 'all') ? '' : 'none';
+
+    /* ── Update charts ── */
+    updateBar(window.CHARTS.ratings,       c.ratings);
+    updateBar(window.CHARTS.year,          c.year);
+    updateBar(window.CHARTS.month,         c.month);
+    updateBar(window.CHARTS.decade,        c.decade);
+    updateBar(window.CHARTS.directors,     c.directors);
+    updateBar(window.CHARTS.countries,     c.countries);
+    updateBar(window.CHARTS.reviews,       c.reviews);
+    updateBar(window.CHARTS.fav_years_mw,  c.fav_years_mw);
+    updateBar(window.CHARTS.fav_years_br,  c.fav_years_br);
+    updateDoughnut(window.CHARTS.genres,   c.genres);
+    updateDoughnut(window.CHARTS.lengths,  c.lengths);
+
+    /* ── Update HTML sections ── */
+    setHTML('overviewCards',       h.overview_cards);
+    setHTML('topRatedContent',     h.top_rated);
+    setHTML('rewatchContent',      h.rewatches);
+    setHTML('tagsContent',         h.tags);
+    setHTML('runtimeContent',      h.runtime);
+    setHTML('actorsContent',       h.actors);
+    setHTML('genderContent',       h.gender);
+    setHTML('topRatedDirsContent', h.top_rated_directors);
+    setHTML('lowPopContent',       h.low_pop);
+
+    /* Genres table (alongside doughnut chart – canvas stays, only tbody swaps) */
+    const gt = document.getElementById('genresTable');
+    if (gt) gt.innerHTML = h.genres_table;
+
+    /* Film-lengths legend (alongside doughnut – canvas stays) */
+    const ll = document.getElementById('lengthsLegend');
+    if (ll) ll.innerHTML = h.lengths_legend;
+  }};
+}})();
+</script>
 
 </body>
 </html>"""

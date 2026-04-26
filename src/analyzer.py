@@ -906,6 +906,40 @@ def get_watchlist_analysis(data: dict) -> dict:
     }
 
 
+# ── Diary-year helpers ──────────────────────────────────────────────────────────
+
+def get_diary_years(data: dict) -> list[int]:
+    """Return a descending list of calendar years present in the diary."""
+    diary = data["diary"].copy()
+    diary["_year"] = pd.to_datetime(diary["Watched Date"], errors="coerce").dt.year
+    years = sorted(diary["_year"].dropna().unique().astype(int), reverse=True)
+    return [int(y) for y in years]
+
+
+def filter_data_by_diary_year(data: dict, year: int) -> dict:
+    """Return a copy of *data* scoped to diary entries logged in *year*."""
+    diary = data["diary"].copy()
+    diary["_date"] = pd.to_datetime(diary["Watched Date"], errors="coerce")
+    diary_yr = diary[diary["_date"].dt.year == year].drop(columns=["_date"]).reset_index(drop=True)
+
+    # Deduplicated (Name, Year) keys watched in this diary year
+    keys = diary_yr[["Name", "Year"]].drop_duplicates()
+    watched_yr = data["watched"].merge(keys, on=["Name", "Year"], how="inner").reset_index(drop=True)
+    ratings_yr = data["ratings"].merge(keys, on=["Name", "Year"], how="inner").reset_index(drop=True)
+
+    rev = data["reviews"].copy()
+    rev["_y"] = pd.to_datetime(rev["Date"], errors="coerce").dt.year
+    reviews_yr = rev[rev["_y"] == year].drop(columns=["_y"]).reset_index(drop=True)
+
+    return {
+        **data,
+        "diary":   diary_yr,
+        "watched": watched_yr,
+        "ratings": ratings_yr,
+        "reviews": reviews_yr,
+    }
+
+
 # ── Master aggregator ───────────────────────────────────────────────────────────
 
 def get_all_stats(data: dict) -> dict:
@@ -958,6 +992,38 @@ def get_all_stats(data: dict) -> dict:
         results[key] = fn()
 
     results["tmdb_enabled"] = bool(get_tmdb_api_key())
+
+    # ── Per-year stats (used by year-filter buttons in the HTML report) ─────────
+    diary_years = get_diary_years(data)
+    results["diary_years"] = diary_years
+    per_year: dict = {}
+    for yr in diary_years:
+        print(f"  Year {yr}...")
+        yd = filter_data_by_diary_year(data, yr)
+        per_year[str(yr)] = {
+            "profile":                get_profile_info(yd),
+            "rating_distribution":    get_rating_distribution(yd),
+            "activity_by_year":       get_activity_by_year(yd),
+            "activity_by_month":      get_activity_by_month(yd),
+            "decade_breakdown":       get_decade_breakdown(yd),
+            "top_rated_films":        get_top_rated_films(yd),
+            "rewatch_stats":          get_rewatch_stats(yd),
+            "tag_breakdown":          get_tag_breakdown(yd),
+            "reviews_over_time":      get_reviews_over_time(yd),
+            "favorite_years":         get_favorite_years(yd),
+            "directors":              get_most_watched_directors(yd),
+            "genres":                 get_favorite_genres(yd),
+            "actors":                 get_favorite_actors(yd),
+            "runtime_stats":          get_runtime_stats(yd),
+            "film_lengths":           get_film_length_categories(yd),
+            "countries":              get_country_distribution(yd),
+            "gender_distribution":    get_gender_distribution(yd),
+            "low_popularity_watched": get_low_popularity_watched(yd),
+            "top_rated_directors":    get_top_rated_directors(yd),
+            "tmdb_enabled":           bool(get_tmdb_api_key()),
+        }
+    results["per_year_stats"] = per_year
+
     print("Done.")
     return results
 
